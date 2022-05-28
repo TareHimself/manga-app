@@ -1,8 +1,9 @@
 import { JSXElement } from "@babel/types";
 import React from "react";
 import { FlatList, ScrollView, StyleProp, View, ViewStyle } from "react-native";
+import { FlexGridViewProps } from "../types";
 
-export default function FlexGridView({ styleY, styleX, columns, items, createElement }: { styleY?: StyleProp<ViewStyle>; styleX?: StyleProp<ViewStyle>; columns: number; items: any[]; createElement: (element: any) => JSX.Element; }) {
+export default function FlexGridView({ listStyle, rowStyle, incompleteRowStyle, columns, items, createElement }: FlexGridViewProps) {
 
     let rowCounter = 0;
 
@@ -15,13 +16,19 @@ export default function FlexGridView({ styleY, styleX, columns, items, createEle
         currentElements.push(createElement(item));
 
         if (currentElements.length === columns || index === items.length - 1) {
-            elements.push(<View key={`row-${rowCounter}`} style={styleX}>{currentElements.map(element => element)}</View>)
+            if (currentElements.length < columns) {
+                elements.push(<View key={`row-${rowCounter}`} style={incompleteRowStyle}>{currentElements.map(element => element)}</View>)
+            }
+            else {
+                elements.push(<View key={`row-${rowCounter}`} style={rowStyle}>{currentElements.map(element => element)}</View>)
+            }
+
             currentElements = [];
             rowCounter++;
         }
     });
 
-    return (<ScrollView style={styleY}>
+    return (<ScrollView style={listStyle}>
         {elements}
     </ScrollView>)
 }

@@ -1,29 +1,35 @@
 import { View, Text } from './Themed';
 import { Dimensions, StyleSheet, Image, TouchableOpacity, ImageBackground, View as DefaultView } from 'react-native';
-import React from 'react';
+import React, { PureComponent } from 'react';
+import { IMangaData, MainStackParamList } from '../types';
 
-export default function MangaPreview({ data, navigate }: { data: IMangaData, navigate: (route: keyof MainStackParamList, params: MainStackParamList[keyof MainStackParamList]) => void; }) {
+export type MangaPreviewProps = { data: IMangaData, navigate: (route: keyof MainStackParamList, params: MainStackParamList[keyof MainStackParamList]) => void; width: number; };
 
-  const coverUrl = data.relationships.filter(r => r.type === 'cover_art')[0]?.attributes?.fileName;
-  return (
-    <TouchableOpacity onPress={() => { navigate('MangaPreview', { manga: data }) }} style={styles.container}>
-      <ImageBackground style={styles.img} source={{ uri: coverUrl ? `https://uploads.mangadex.org/covers/${data.id}/${coverUrl}.512.jpg` : "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fblack-blueprint-background-vector-illustration-gm543213826-97441037&psig=AOvVaw36KNugoF-gq8jV4XCZ59m6&ust=1653537486338000&source=images&cd=vfe&ved=0CAwQjRxqFwoTCKi_qKbh-fcCFQAAAAAdAAAAABAD" }} />
-      <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.attributes.title ? data.attributes.title[Object.keys(data.attributes.title)[0]] : "No Title"}</Text></DefaultView>
-    </TouchableOpacity>
+export default class MangaPreview extends PureComponent<MangaPreviewProps> {
 
+  render(): React.ReactNode {
+    const { data, navigate } = this.props;
 
-  )
+    const coverUrl = data.relationships.filter(r => r.type === 'cover_art')[0]?.attributes?.fileName;
+
+    const scale = Math.min(width, 200) / 200;
+    return (
+      <TouchableOpacity onPress={() => { navigate('MangaPreview', { manga: data }) }} style={{ ...styles.container, width: width, margin: 5 * scale }}>
+        <ImageBackground style={styles.img} source={{ uri: coverUrl ? `https://uploads.mangadex.org/covers/${data.id}/${coverUrl}.512.jpg` : "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fblack-blueprint-background-vector-illustration-gm543213826-97441037&psig=AOvVaw36KNugoF-gq8jV4XCZ59m6&ust=1653537486338000&source=images&cd=vfe&ved=0CAwQjRxqFwoTCKi_qKbh-fcCFQAAAAAdAAAAABAD" }} />
+        <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.attributes.title ? data.attributes.title[Object.keys(data.attributes.title)[0]] : "No Title"}</Text></DefaultView>
+      </TouchableOpacity>
+    )
+  }
+
 }
 
-const width = Dimensions.get('window').width * 0.97 * 0.475;
+const width = 190;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-start',
     flexDirection: 'column',
     width: width,
-    minWidth: width,
-    maxWidth: width,
     aspectRatio: 0.65,
     borderRadius: 7,
     overflow: 'hidden',

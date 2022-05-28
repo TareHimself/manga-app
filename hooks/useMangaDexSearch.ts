@@ -1,28 +1,37 @@
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { IMangaData, IMangaDexApiSearchResponse } from "../types";
 
+export const DefaultMangaDexSearch = { "limit": "30", "order[followedCount]": "desc", "offset": "0" };
 
-
-export default function useMangaDexSearch(): [IMangaData[], (search: IMangaDexSearch) => Promise<void>] {
+export default function useMangaDexSearch(search: Record<string, string> = DefaultMangaDexSearch, bShouldReplaceLastSearch: boolean = true): [IMangaData[], (search: Record<string, string>, bShouldReplaceLastSearch: boolean) => Promise<void>] {
     const [results, setResults] = useState<IMangaData[]>([]);
 
-    const makeSearch = useCallback(async (search: IMangaDexSearch) => {
+    const lastQuery = useRef<string>()
+    const makeSearch = useCallback(async (search: Record<string, string> = DefaultMangaDexSearch, bShouldReplaceLastSearch = true) => {
         try {
 
-            const response: IMangaDexApiSearchResponse = (await axios.get(`https://api.mangadex.org/manga?limit=12&includes%5B%5D=cover_art&order[followedCount]=desc`))?.data;
+            const url = `https://api.mangadex.org/manga?includes[]=cover_art&${new URLSearchParams(search).toString()}`;
+            console.log('Making Request', url)
 
-            setResults(response.data)
+            const response: IMangaDexApiSearchResponse = (await axios.get(url))?.data;
 
+
+
+            if (bShouldReplaceLastSearch) {
+                setResults(response.data);
+            }
+            else {
+                setResults([...results, ...response.data])
+            }
         } catch (error) {
             console.log(error);
         }
-    }, [])
+    }, [results])
 
     useEffect(() => {
-        makeSearch({});
-
-        console.log('Making Request')
+        makeSearch(search);
     }, [])
 
     return [results, makeSearch]
-}
+} 

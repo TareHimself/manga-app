@@ -11,10 +11,11 @@ import { ColorSchemeName } from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MangaPreviewScreen from '../screens/MangaPreviewScreen';
+import { RootStackParamList, MainStackParamList } from '../types';
+import ReadMangaModalScreen from '../screens/ReadMangaModalScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -36,9 +37,6 @@ function RootNavigator() {
     <RootStack.Navigator>
       <RootStack.Screen name="Main" component={MainNaivator} options={{ headerShown: false }} />
       <RootStack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <RootStack.Group screenOptions={{ presentation: 'modal' }}>
-        <RootStack.Screen name="Modal" component={ModalScreen} />
-      </RootStack.Group>
     </RootStack.Navigator>
   );
 }
@@ -54,10 +52,15 @@ function MainNaivator() {
   const colorScheme = useColorScheme();
 
   return (
-    <MainStack.Navigator >
-      <MainStack.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
-      <MainStack.Screen name="MangaPreview" component={MangaPreviewScreen} options={{ headerShown: false }} initialParams={undefined} />
-    </MainStack.Navigator>
+    <MainStack.Navigator screenOptions={{ headerShown: false }}>
+      <MainStack.Group>
+        <MainStack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <MainStack.Screen name="MangaPreview" component={MangaPreviewScreen} options={{ headerShown: false }} initialParams={undefined} />
+      </MainStack.Group>
+      <MainStack.Group screenOptions={{ presentation: 'fullScreenModal', headerShown: false }} >
+        <MainStack.Screen name="ReadMangaModal" component={ReadMangaModalScreen} />
+      </MainStack.Group>
+    </MainStack.Navigator >
   );
 }
 

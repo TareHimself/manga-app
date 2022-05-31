@@ -1,14 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image } from 'react-native';
-
-import EditScreenInfo from '../components/EditScreenInfo';
-import FlexGridView from '../components/FlexGridView';
-import MangaPreview from '../components/MangaPreview';
-import ReadMangaPreview from '../components/MangaChapterPreviewTouchable';
 import { SafeAreaView, Text, View } from '../components/Themed';
-import Colors from '../constants/Colors';
 import useMangaDexChapters from '../hooks/useMangaDexChapters';
-import useMangaDexSearch from '../hooks/useMangaDexSearch';
 import { MainStackScreenProps, MainStackParamList, IMangaDexApiChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';

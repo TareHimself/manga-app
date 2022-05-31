@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'column',
     width: width,
+    maxWidth: width,
     aspectRatio: 0.65,
     borderRadius: 7,
     overflow: 'hidden',

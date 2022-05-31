@@ -3,6 +3,7 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 
+import React from 'react';
 import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView } from 'react-native';
 
 import Colors from '../constants/Colors';

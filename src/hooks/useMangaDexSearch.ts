@@ -2,7 +2,7 @@ import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IMangaData, IMangaDexApiSearchResponse } from "../types";
 
-export const DefaultMangaDexSearch = { "limit": "30", "order[followedCount]": "desc", "offset": "0" };
+export const DefaultMangaDexSearch = { "limit": "30", "order[followedCount]": "desc", "offset": "0", "title": "" };
 
 export default function useMangaDexSearch(search: Record<string, string> = DefaultMangaDexSearch, bShouldReplaceLastSearch: boolean = true): [IMangaData[], (search: Record<string, string>, bShouldReplaceLastSearch: boolean) => Promise<void>] {
     const [results, setResults] = useState<IMangaData[]>([]);

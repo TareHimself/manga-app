@@ -6,6 +6,8 @@ export function getDiagonalScreenSize() {
     return Math.sqrt((width ** 2) + (height ** 2)) / 160;
 }
 
+// this is a test comment 
+
 export function isTablet(): boolean {
 
     return getDiagonalScreenSize() > 7;

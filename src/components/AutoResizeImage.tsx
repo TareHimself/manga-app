@@ -34,7 +34,7 @@ export default function AutoResizeImage({ source, style }: ImageProps) {
     }
 
     function onLoad() {
-
+        setIsLoading(false);
     }
 
 

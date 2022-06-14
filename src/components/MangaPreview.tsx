@@ -10,13 +10,14 @@ export default class MangaPreview extends PureComponent<MangaPreviewProps> {
   render(): React.ReactNode {
     const { data, navigate } = this.props;
 
-    const coverUrl = data.relationships.filter(r => r.type === 'cover_art')[0]?.attributes?.fileName;
+    const coverUrl = data.cover;
 
+    console.log(coverUrl)
     const scale = Math.min(width, 200) / 200;
     return (
       <TouchableOpacity onPress={() => { navigate('MangaPreview', { manga: data }) }} style={{ ...styles.container, width: width, margin: 5 * scale }}>
-        <ImageBackground style={styles.img} source={{ uri: coverUrl ? `https://uploads.mangadex.org/covers/${data.id}/${coverUrl}.512.jpg` : "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fblack-blueprint-background-vector-illustration-gm543213826-97441037&psig=AOvVaw36KNugoF-gq8jV4XCZ59m6&ust=1653537486338000&source=images&cd=vfe&ved=0CAwQjRxqFwoTCKi_qKbh-fcCFQAAAAAdAAAAABAD" }} />
-        <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.attributes.title ? data.attributes.title[Object.keys(data.attributes.title)[0]] : "No Title"}</Text></DefaultView>
+        <ImageBackground style={styles.img} source={{ uri: coverUrl }} />
+        <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.name}</Text></DefaultView>
       </TouchableOpacity>
     )
   }

@@ -48,6 +48,8 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
     const scrollVelocityTimeout = useRef<undefined | ReturnType<typeof setTimeout>>(undefined);
 
+    const isComputingScrollVelocity = useRef(false);
+
     function applyScrollDelta(dx: number, dy: number) {
         const newPositionX = (handlers.scrollX as any)._value + dx;
         const newPositionY = (handlers.scrollY as any)._value + dy;
@@ -68,8 +70,11 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
         if (lastScrollVelocity.current.x === 0 && lastScrollVelocity.current.y === 0) {
             scrollVelocityTimeout.current = undefined;
+            isComputingScrollVelocity.current = false;
             return;
-
+        }
+        else {
+            isComputingScrollVelocity.current = true;
         }
 
         const now = Date.now();
@@ -132,30 +137,6 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
             onMoveShouldSetPanResponderCapture: (e, gestureState) => true,
             onStartShouldSetPanResponder: (e, gestureState) => true,
             onStartShouldSetPanResponderCapture: (e, gestureState) => true,
-            onPanResponderRelease: (event, gesture) => {
-                /*Animated.timing(scrollHandler, {
-                    toValue: { x: 0, y: 0 },
-                    duration: 100,
-                    useNativeDriver: false
-                }).start();*/
-
-                const distanceDelta = distanceBetween2Points({ x: gesture.x0, y: gesture.y0 }, { x: gesture.moveX, y: gesture.moveY });
-                const timeDelta = Date.now() - lastTouchStartTime.current
-
-                if (((timeDelta < functionalTouchTimeout) || ((timeDelta >= functionalTouchTimeout && distanceDelta < 60))) && onTouched) {
-                    onTouched(event, gesture, handlers);
-                }
-                else {
-                    console.log('no touch', (Date.now() - lastTouchStartTime.current), 'ms', gesture.vy)
-                    lastScrollVelocity.current = { x: gesture.vx * 10, y: gesture.vy * 10 };
-                    scrollVelocityTimeout.current = setTimeout(computeScrollVelocity, 10);
-                }
-
-                lastTouchStartTime.current = Date.now();
-            },
-            onPanResponderTerminate: (event, gesture) => {
-
-            },
             onPanResponderStart: (event, gesture) => {
                 if (scrollVelocityTimeout.current !== undefined) {
                     clearTimeout(scrollVelocityTimeout.current);
@@ -233,6 +214,33 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
 
                 applyScrollDelta(scrollDeltaX, scrollDeltaY);
+            },
+            onPanResponderRelease: (event, gesture) => {
+                /*Animated.timing(scrollHandler, {
+                    toValue: { x: 0, y: 0 },
+                    duration: 100,
+                    useNativeDriver: false
+                }).start();*/
+
+                const distanceDelta = distanceBetween2Points({ x: gesture.x0, y: gesture.y0 }, { x: gesture.moveX, y: gesture.moveY });
+                const timeDelta = Date.now() - lastTouchStartTime.current
+
+                if (((timeDelta < functionalTouchTimeout) || ((timeDelta >= functionalTouchTimeout && distanceDelta < 60))) && onTouched) {
+                    onTouched(event, gesture, handlers);
+                }
+                else {
+                    console.log('no touch', (Date.now() - lastTouchStartTime.current), 'ms', gesture.vy)
+                    lastScrollVelocity.current = { x: gesture.vx * 10, y: gesture.vy * 10 };
+                    if (!isComputingScrollVelocity.current) {
+                        computeScrollVelocity();
+                    }
+
+                }
+
+                lastTouchStartTime.current = Date.now();
+            },
+            onPanResponderTerminate: (event, gesture) => {
+
             }
         });
 

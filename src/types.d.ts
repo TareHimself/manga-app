@@ -23,22 +23,10 @@ enum EMangaContentRating {
 
 export interface IMangaData {
   id: string;
-  type: "manga";
-  state: EMangaState;
-  createdAt: string;
-  updatedAt: string;
-  contentRating: EMangaContentRating;
-  lastVolume: string;
-  lastChapter: string;
-  attributes: {
-    title?: Record<string, string>;
-    altTitles?: Record<string, string>[];
-    description: Record<string, string>;
-    status: 'ongoing' | 'completed';
-  };
-  relationships: {
-    id: string; type: 'author' | 'artist' | 'cover_art'; attributes?: { fileName: string }
-  }[]
+  name: string;
+  cover: string;
+  chapters: string;
+  tags: string[]
 
 }
 
@@ -85,14 +73,9 @@ export interface IMangaDexApiChaptersResponse {
   total: number;
 }
 
-export interface IMangaDexReadableChapter {
-  result: "ok";
-  baseUrl: string;
-  chapter: {
-    hash: string;
-    data: string[];
-    dataSaver: string[];
-  }
+export interface IMangaReadableChapter {
+  base: string;
+  total: number
 }
 
 export type RootStackParamList = {
@@ -104,7 +87,7 @@ export type RootStackParamList = {
 export type MainStackParamList = {
   Home: undefined;
   MangaPreview: { manga: IMangaData };
-  ReadMangaModal: { manga: IMangaData; chapters: IMangaDexApiChapter[]; startChapter: IMangaDexApiChapter };
+  ReadMangaModal: { manga: IMangaData; chapters: string[]; startChapter: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;

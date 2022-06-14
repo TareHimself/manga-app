@@ -3,10 +3,10 @@ import React from 'react'
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { IMangaDexApiChapter, MainStackParamList } from '../types';
 
-export default function MangaChapterTouchable({ chapter, readChapter }: { chapter: IMangaDexApiChapter; readChapter: (chapter: IMangaDexApiChapter) => void; }) {
+export default function MangaChapterTouchable({ chapter, readChapter }: { chapter: string; readChapter: (chapter: string) => void; }) {
     return (
         <TouchableOpacity style={styles.container} onPress={() => readChapter(chapter)}>
-            < Text > {chapter.attributes.chapter}</Text >
+            < Text > {chapter}</Text >
         </TouchableOpacity >
     )
 }

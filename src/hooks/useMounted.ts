@@ -1,11 +1,8 @@
 import axios from "axios";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { IMangaData, IMangaDexApiSearchResponse } from "../types";
+import { useCallback, useEffect, useRef } from "react";
 
-export const DefaultMangaDexSearch = { "limit": "30", "order[followedCount]": "desc", "offset": "0", "title": "" };
 
-export default function useMangaDexSearch(): () => boolean {
-    const [results, setResults] = useState<IMangaData[]>([]);
+export default function useMounted(): () => boolean {
 
     const isMounted = useRef<boolean>(true)
 
@@ -19,5 +16,5 @@ export default function useMangaDexSearch(): () => boolean {
         return () => { isMounted.current = false }
     }, [])
 
-    return IsMounted
+    return IsMounted;
 } 

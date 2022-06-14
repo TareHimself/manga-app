@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image } from 'react-native';
 import { SafeAreaView, Text, View } from '../components/Themed';
-import useMangaDexChapters from '../hooks/useMangaDexChapters';
+import useMangaDexChapters from '../hooks/useMangaChapters';
 import { MainStackScreenProps, MainStackParamList, IMangaDexApiChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';
@@ -12,16 +12,16 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
   const bIsTablet = isTablet();
 
   console.log(bIsTablet)
-  const coverUrl = manga.relationships.filter(r => r.type === 'cover_art')[0]?.attributes?.fileName;
-  const title = manga.attributes.title ? manga.attributes.title[Object.keys(manga.attributes.title)[0]] : "No Title"
-  const description = manga.attributes.description['en'];
-  const status = manga.attributes.status;
+  const coverUrl = manga.cover;
+  const title = manga.name;
+  const description = "Come along with me";
+  const status = " unknown";
 
   const [chapters] = useMangaDexChapters(manga.id || '');
 
   const [wantsToRead, setWantsToRead] = useState(false);
 
-  const onReadChapter = (chapter: IMangaDexApiChapter) => {
+  const onReadChapter = (chapter: string) => {
     if (manga) {
       navigate('ReadMangaModal', { manga: manga, chapters: chapters, startChapter: chapter })
     }
@@ -40,7 +40,7 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
       <View style={styles.topBar}></View>
       <View style={styles.informationView} level={'level1'}>
         <View style={styles.imageContainer}>
-          <Image style={styles.coverImg} source={{ uri: coverUrl ? `https://uploads.mangadex.org/covers/${manga.id}/${coverUrl}` : "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fblack-blueprint-background-vector-illustration-gm543213826-97441037&psig=AOvVaw36KNugoF-gq8jV4XCZ59m6&ust=1653537486338000&source=images&cd=vfe&ved=0CAwQjRxqFwoTCKi_qKbh-fcCFQAAAAAdAAAAABAD" }} />
+          <Image style={styles.coverImg} source={{ uri: coverUrl }} />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>{title}</Text>
@@ -51,7 +51,7 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
       <View style={styles.contentView} level={'level1'}>
         <ScrollView style={styles.scroll} contentContainerStyle={{ alignItems: 'flex-start' }}>
 
-          {chapters.map(chapter => <MangaChapterPreviewTouchable chapter={chapter} key={chapter.id} readChapter={onReadChapter} />)}
+          {chapters.map(chapter => <MangaChapterPreviewTouchable chapter={chapter} key={chapter} readChapter={onReadChapter} />)}
         </ScrollView>
       </View>
 

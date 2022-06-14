@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import MangaPreview from '../components/MangaPreview';
 import { Text, View, SafeAreaView } from '../components/Themed';
-import useMangaDexSearch, { DefaultMangaDexSearch } from '../hooks/useMangaDexSearch';
+import useMangaDexSearch, { DefaultMangaDexSearch } from '../hooks/useMangaSearch';
 import { useValueThrottle } from '../hooks/useValueThrottle';
 import { MainStackScreenProps, MainStackParamList } from '../types';
 
@@ -40,8 +40,8 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
 
   function onSearchCommited(search: string) {
     console.log('value commited', search)
-    latestSearch.current = { ...defaultSearch, "title": search };
-    makeSearch(latestSearch.current, true)
+    latestSearch.current = { ...defaultSearch, "q": search };
+    makeSearch(latestSearch.current)
   }
 
   const updateSearch = useValueThrottle<string>(200, onSearchCommited, '');
@@ -49,14 +49,15 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
   async function onReloadResults() {
     console.log('We need to reload results');
     SetIsRefreshing(true);
-    console.log(defaultSearch)
-    await makeSearch(defaultSearch, true);
-    latestSearch.current = defaultSearch;
+    console.log({ ...defaultSearch, q: latestSearch.current.q })
+    await makeSearch({ ...defaultSearch, q: latestSearch.current.q });
+    latestSearch.current = { ...defaultSearch, q: latestSearch.current.q };
     SetIsRefreshing(false);
   }
 
   async function onLoadMoreResults() {
 
+    return;
     const lastOffset = isNaN(parseInt(latestSearch.current.offset, 10)) ? 0 : parseInt(latestSearch.current.offset, 10);
 
     const newSearch = { ...latestSearch.current, "offset": `${lastOffset + (initiaLimit.current)}` };
@@ -64,7 +65,7 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
     if (JSON.stringify(latestSearch.current) !== JSON.stringify(newSearch)) {
       latestSearch.current = newSearch;
       console.log('Loading more results', latestSearch.current);
-      makeSearch(latestSearch.current, false);
+      makeSearch(latestSearch.current);
     }
     else {
       console.log('ReachedApiLimit');

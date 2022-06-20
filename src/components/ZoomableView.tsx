@@ -1,8 +1,6 @@
 
-import React, { useRef } from 'react'
-import { useState } from 'react';
-import { useEffect } from 'react';
-import ReactNative, { StyleProp, ViewStyle, PanResponder, Animated, useWindowDimensions, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import ReactNative, { Animated, PanResponder, StyleProp, StyleSheet, useWindowDimensions, ViewStyle } from 'react-native';
 import { clamp, distanceBetween2Points } from '../utils';
 
 export interface ZoomableViewHandlers { scrollX: Animated.Value; scrollY: Animated.Value; zoom: Animated.Value }
@@ -13,7 +11,7 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
     const maxZoom = zoomMax || 3;
     const gestureMultiplier = scrollSpeed || 20;
     const functionalTouchTimeout = touchMsTimeout || 100;
-    const scrollDecelleration = 30;
+    const scrollDecelleration = 100;
 
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -27,6 +25,22 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
     const overlayBottomMarginAnimated = useRef(new Animated.Value(0)).current;
 
     const overlayHeightAnimated = useRef(new Animated.Value(0)).current;
+
+    const scrollBarHeightAnimated = useRef(new Animated.Value(0)).current;
+
+    const scrollBarBottomMarginAnimated = useRef(new Animated.Value(0)).current;
+
+    const scrollBarTopOffsetAnimated = useRef(new Animated.Value(0)).current;
+
+    const scrollBarOpacityAnimated = useRef(new Animated.Value(1)).current;
+
+    const fadeScrollBarAnimation = useRef<Animated.CompositeAnimation>(Animated.timing(scrollBarOpacityAnimated, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: false
+    })).current;
+
+    const scrollBarVisibilityTimeout = useRef<undefined | ReturnType<typeof setTimeout>>(undefined);
 
     const lastPanEventTime = useRef(0);
 
@@ -50,10 +64,14 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
     const isComputingScrollVelocity = useRef(false);
 
+    const acumilatedMoveLastTouch = useRef({ x: 0, y: 0 });
+
+
+
+
     function applyScrollDelta(dx: number, dy: number) {
         const newPositionX = (handlers.scrollX as any)._value + dx;
         const newPositionY = (handlers.scrollY as any)._value + dy;
-
 
         const xSpaceAvailable = Math.min(windowWidth - subViewLayout.current.width, 0);
         const ySpaceAvailable = Math.min(mainViewLayout.current.height - subViewLayout.current.height, 0);
@@ -63,6 +81,40 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
     }
 
     function onScrollAnimated() {
+
+    }
+
+    function computeScrollBarProperties() {
+
+        fadeScrollBarAnimation.reset();
+
+        const currentOffsetY = (handlers.scrollY as any)._value;
+
+        const currentHeight = (scrollBarHeightAnimated as any)._value;
+        const currentMargin = (scrollBarBottomMarginAnimated as any)._value;
+
+        const currentExtraSpace = currentHeight + currentMargin;
+
+        const trueSubViewHeight = subViewLayout.current.height - currentExtraSpace;
+        const trueMainViewHeight = mainViewLayout.current.height
+        const mainToSubRatio = (trueMainViewHeight / (trueSubViewHeight));
+
+        const scrollBarheight = Math.max((mainToSubRatio * mainViewLayout.current.height), 50);
+
+        const finalBarOffset = ((currentOffsetY * - 1) * mainToSubRatio) + (currentOffsetY * -1);
+
+        scrollBarHeightAnimated.setValue(scrollBarheight);
+        scrollBarBottomMarginAnimated.setValue(scrollBarheight * -1);
+        scrollBarTopOffsetAnimated.setValue(finalBarOffset);
+
+        if (scrollBarVisibilityTimeout.current) {
+            clearTimeout(scrollBarVisibilityTimeout.current);
+        }
+
+        setTimeout(() => {
+            scrollBarVisibilityTimeout.current = undefined;
+            fadeScrollBarAnimation.start();
+        }, 2000);
 
     }
 
@@ -91,6 +143,7 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
         applyScrollDelta(newVelocityX, newVelocityY);
         lastPanEventTime.current = now;
+        computeScrollBarProperties();
         setTimeout(computeScrollVelocity, 10);
 
     }
@@ -120,6 +173,7 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
     function onMainViewLayoutUpdated(event: ReactNative.LayoutChangeEvent) {
         mainViewLayout.current = event.nativeEvent.layout;
         widthAnimated.setValue((handlers.zoom as any)._value * mainViewLayout.current.width)
+
     }
 
     function onSubViewLayoutUpdated(event: ReactNative.LayoutChangeEvent) {
@@ -128,6 +182,8 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
             overlayBottomMarginAnimated.setValue(event.nativeEvent.layout.height * -1);
         }
         subViewLayout.current = event.nativeEvent.layout;
+
+        computeScrollBarProperties();
     }
 
     useEffect(() => {
@@ -150,6 +206,9 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
             }
             ,
             onPanResponderMove: (event, gesture) => {
+
+                acumilatedMoveLastTouch.current = { x: acumilatedMoveLastTouch.current.x + Math.abs(gesture.vx), y: acumilatedMoveLastTouch.current.y + Math.abs(gesture.vy) };
+
                 const now = Date.now();
                 const deltaTime = (now - lastPanEventTime.current) / 1000;
                 lastPanEventTime.current = now;
@@ -164,7 +223,7 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
                 let currentX: number = (handlers.scrollX as any)._value;
                 let currentY: number = (handlers.scrollY as any)._value;
 
-                if (isZoom) {
+                if (isZoom && false) {
                     const finger1Screen = { x: event.nativeEvent.changedTouches[0].pageX, y: event.nativeEvent.changedTouches[0].pageY }
                     const finger2Screen = { x: event.nativeEvent.changedTouches[1].pageX, y: event.nativeEvent.changedTouches[1].pageY }
 
@@ -214,6 +273,8 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
 
 
                 applyScrollDelta(scrollDeltaX, scrollDeltaY);
+                computeScrollBarProperties();
+
             },
             onPanResponderRelease: (event, gesture) => {
                 /*Animated.timing(scrollHandler, {
@@ -222,15 +283,18 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
                     useNativeDriver: false
                 }).start();*/
 
-                const distanceDelta = distanceBetween2Points({ x: gesture.x0, y: gesture.y0 }, { x: gesture.moveX, y: gesture.moveY });
+
+                const distanceDelta = Math.max(acumilatedMoveLastTouch.current.x, acumilatedMoveLastTouch.current.y);
                 const timeDelta = Date.now() - lastTouchStartTime.current
 
-                if (((timeDelta < functionalTouchTimeout) || ((timeDelta >= functionalTouchTimeout && distanceDelta < 60))) && onTouched) {
+                if (distanceDelta < 10 && timeDelta < functionalTouchTimeout && onTouched) {
                     onTouched(event, gesture, handlers);
                 }
                 else {
-                    console.log('no touch', (Date.now() - lastTouchStartTime.current), 'ms', gesture.vy)
-                    lastScrollVelocity.current = { x: gesture.vx * 10, y: gesture.vy * 10 };
+
+                    console.log('no touch', (Date.now() - lastTouchStartTime.current), 'ms', distanceDelta)
+                    lastScrollVelocity.current = { x: gesture.vx * 20, y: gesture.vy * 20 };
+
                     if (!isComputingScrollVelocity.current) {
                         computeScrollVelocity();
                     }
@@ -238,6 +302,8 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
                 }
 
                 lastTouchStartTime.current = Date.now();
+
+                acumilatedMoveLastTouch.current = { x: 0, y: 0 }
             },
             onPanResponderTerminate: (event, gesture) => {
 
@@ -260,6 +326,8 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
             }
         };
 
+
+
     }, [gestureMultiplier, maxZoom, maxZoom, functionalTouchTimeout, onTouched])
 
     const panResponder = useRef<undefined | ReactNative.PanResponderInstance>(undefined);
@@ -268,22 +336,30 @@ export default function ZoomableView({ style, scrollSpeed, children, zoomMin, zo
         return null;
     }
 
+    //
     return (
+        <React.Fragment>
 
-        <Animated.View
-            {...panResponder.current.panHandlers}
-            style={[style, styles.mainViewStyles]}
-            onLayout={onMainViewLayoutUpdated}
-        >
             <Animated.View
-                style={{ width: widthAnimated, marginTop: handlers.scrollY }}
-                onLayout={onSubViewLayoutUpdated}
+                {...panResponder.current.panHandlers}
+                style={[style, styles.mainViewStyles]}
+                onLayout={onMainViewLayoutUpdated}
             >
-                <Animated.View style={[styles.overlayViewStyles, { height: overlayHeightAnimated, marginBottom: overlayBottomMarginAnimated }]} />
-                {children}
 
-            </Animated.View >
-        </Animated.View>
+
+                <Animated.View
+                    style={{ width: widthAnimated, maxWidth: widthAnimated, marginTop: handlers.scrollY }}
+                    onLayout={onSubViewLayoutUpdated}
+                >
+
+                    <Animated.View style={[styles.overlayViewStyles, { height: overlayHeightAnimated, marginBottom: overlayBottomMarginAnimated }]} />
+                    <Animated.View style={[styles.scrollBarStyles, { top: scrollBarTopOffsetAnimated, height: scrollBarHeightAnimated, marginBottom: scrollBarBottomMarginAnimated, opacity: scrollBarOpacityAnimated }]} />
+                    {children}
+
+                </Animated.View >
+            </Animated.View>
+        </React.Fragment>
+
 
     )
 
@@ -295,7 +371,15 @@ const styles = StyleSheet.create({
     },
     overlayViewStyles: {
         width: '100%',
-        elevation: 1, zIndex: 1
+        elevation: 2, zIndex: 2
+    },
+    scrollBarStyles: {
+        width: 5,
+        left: '100%',
+        transform: [{ translateX: -10 }],
+        elevation: 1, zIndex: 1,
+        backgroundColor: 'rgba(80, 80, 80, 0.9)',
+        borderRadius: 5
     }
 
 })

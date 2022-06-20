@@ -39,9 +39,6 @@ export default function AutoResizeImage({ source, style }: ImageProps) {
 
 
     return (
-        <View style={{ flexDirection: 'column', alignContent: 'center', width: '100%', aspectRatio: (ratio ? ratio : 0.69), marginVertical: 5 }}>
-
-            <Image onLoad={onLoad} source={source} onLoadEnd={fixRatio} style={{ ...style as Object, aspectRatio: (ratio ? ratio : 0.69), tintColor: isLoading ? 'black' : undefined }} />
-        </View>
+        <Image onLoad={onLoad} source={source} onLoadEnd={fixRatio} style={{ ...style as Object, aspectRatio: (ratio ? ratio : 0.69), tintColor: isLoading ? 'black' : undefined }} />
     )
 }

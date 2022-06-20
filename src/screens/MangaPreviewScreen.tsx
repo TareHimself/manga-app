@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, FlatList, ScrollView, StyleSheet, Image } from 'react-native';
+import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView, Text, View } from '../components/Themed';
 import useMangaDexChapters from '../hooks/useMangaChapters';
 import { MainStackScreenProps, MainStackParamList, IMangaDexApiChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';
+import useReadChapters from '../hooks/useReadChapters';
 export default function MangaPreviewScreen({ navigation, route }: MainStackScreenProps<'MangaPreview'>) {
 
   const { manga } = route.params;
 
   const bIsTablet = isTablet();
 
-  console.log(bIsTablet)
   const coverUrl = manga.cover;
   const title = manga.name;
   const description = "Come along with me";
@@ -20,25 +20,27 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
   const [chapters] = useMangaDexChapters(manga.id || '');
 
   const [wantsToRead, setWantsToRead] = useState(false);
+  const [isOnInfo, setIsOnInfo] = useState(false);
 
   const onReadChapter = (chapter: string) => {
     if (manga) {
       navigate('ReadMangaModal', { manga: manga, chapters: chapters, startChapter: chapter })
     }
-
   }
 
   const navigate = useCallback((route: keyof MainStackParamList, params: MainStackParamList[keyof MainStackParamList]) => {
     navigation.navigate(route, params)
   }, [])
 
+  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
 
+  const chaptersList = isOnInfo ? null : chapters.map(chapter => <MangaChapterPreviewTouchable chapter={chapter} key={chapter} readChapter={onReadChapter} hasReadChapter={hasReadChapter} addReadChapter={addReadChapter} />);
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
 
-      <View style={styles.topBar}></View>
-      <View style={styles.informationView} level={'level1'}>
+      <View style={styles.previewContainer}></View>
+      <View style={[styles.previewContainer, { flexDirection: 'row' }]} level={'level1'}>
         <View style={styles.imageContainer}>
           <Image style={styles.coverImg} source={{ uri: coverUrl }} />
         </View>
@@ -46,13 +48,27 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.status}>status | {status}</Text>
         </View>
-
       </View>
-      <View style={styles.contentView} level={'level1'}>
-        <ScrollView style={styles.scroll} contentContainerStyle={{ alignItems: 'flex-start' }}>
 
-          {chapters.map(chapter => <MangaChapterPreviewTouchable chapter={chapter} key={chapter} readChapter={onReadChapter} />)}
-        </ScrollView>
+      <View style={[styles.previewContainer, { flexDirection: 'row', height: 60 }]} level={'level1'}>
+        <View style={[styles.selectOptionBackground, { right: isOnInfo ? 0 : '-450%' }]} level={'level2'} />
+        <TouchableOpacity style={styles.selectOptionButton} onPress={() => { setIsOnInfo(true) }}>
+          <Text style={styles.readShortcourtButtonText}>Info</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.selectOptionButton} onPress={() => { setIsOnInfo(false) }}>
+          <Text style={styles.readShortcourtButtonText}>Read</Text>
+        </TouchableOpacity>
+      </View>
+
+
+      <View style={[styles.previewContainer, { flex: 1 }]} level={'level1'}>
+        {isOnInfo ?
+          null :
+          <ScrollView style={styles.scroll} contentContainerStyle={{ alignItems: 'flex-start' }}>
+            {chaptersList}
+          </ScrollView>
+        }
+
       </View>
 
 
@@ -67,9 +83,15 @@ const height = 230;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-
-    marginTop: 20
+    flex: 1
+  },
+  previewContainer: {
+    width: '90%',
+    marginVertical: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    marginLeft: '5%'
   },
   topBar: {
     flex: 1,
@@ -115,9 +137,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-    width: '100%',
-    paddingHorizontal: 15,
-    paddingVertical: 15
+    width: '100%'
   },
   contentView: {
     flex: 1,
@@ -131,5 +151,30 @@ const styles = StyleSheet.create({
   },
   text: {
 
+  },
+  readShortcourt: {
+    width: '90%',
+    marginLeft: '5%',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    height: 60,
+    borderRadius: 15,
+  },
+  selectOptionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15
+  },
+  selectOptionBackground: {
+    flex: 1,
+    width: '50%',
+    borderRadius: 15,
+    marginRight: '-50%',
+    right: '-450%'
+  },
+  readShortcourtButtonText: {
+    fontSize: 20
   }
 });

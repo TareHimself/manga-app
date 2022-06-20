@@ -12,7 +12,6 @@ export default class MangaPreview extends PureComponent<MangaPreviewProps> {
 
     const coverUrl = data.cover;
 
-    console.log(coverUrl)
     const scale = Math.min(width, 200) / 200;
     return (
       <TouchableOpacity onPress={() => { navigate('MangaPreview', { manga: data }) }} style={{ ...styles.container, width: width, margin: 5 * scale }}>

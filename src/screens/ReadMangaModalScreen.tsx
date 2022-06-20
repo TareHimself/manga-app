@@ -8,15 +8,18 @@ import { MainStackScreenProps } from '../types';
 import { getDiagonalScreenSize } from '../utils';
 import { useCallback } from 'react';
 import { useWindowDimensions } from 'react-native';
+import useReadChapters from '../hooks/useReadChapters';
 
 export default function ReadMangaModalScreen({ route, navigation }: MainStackScreenProps<'ReadMangaModal'>) {
 
   const { manga, startChapter, chapters } = route.params;
 
-  const [loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id, startChapter)
+  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+  const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id, startChapter)
   const currentChapterIndex = useRef(chapters.indexOf(startChapter));
 
   const { width, height } = useWindowDimensions();
+
 
 
   const onReaderTouched = useCallback((e: ReactNative.GestureResponderEvent, gestureState: ReactNative.PanResponderGestureState, handlers: ZoomableViewHandlers) => {
@@ -27,6 +30,10 @@ export default function ReadMangaModalScreen({ route, navigation }: MainStackScr
         if (currentChapterIndex.current + 1 < chapters.length) {
           currentChapterIndex.current += 1;
           fetchChapter(manga.id, chapters[currentChapterIndex.current])
+
+          if (!hasReadChapter(chapters[currentChapterIndex.current])) {
+            addReadChapter(chapters[currentChapterIndex.current]);
+          }
 
           Animated.timing(handlers.scrollY, {
             toValue: 0,
@@ -58,6 +65,10 @@ export default function ReadMangaModalScreen({ route, navigation }: MainStackScr
           currentChapterIndex.current -= 1;
           fetchChapter(manga.id, chapters[currentChapterIndex.current])
 
+          if (!hasReadChapter(chapters[currentChapterIndex.current])) {
+            addReadChapter(chapters[currentChapterIndex.current]);
+          }
+
           Animated.timing(handlers.scrollY, {
             toValue: 0,
             duration: 100,
@@ -79,7 +90,7 @@ export default function ReadMangaModalScreen({ route, navigation }: MainStackScr
 
         break;
     }
-  }, [loadedChapter, chapters, currentChapterIndex, manga])
+  }, [loadedChapter, chapters, currentChapterIndex, manga, hasReadChapter, addReadChapter])
 
   const images: ImageURISource[] = [];
   if (loadedChapter) {
@@ -89,9 +100,7 @@ export default function ReadMangaModalScreen({ route, navigation }: MainStackScr
     }
   }
 
-  console.log(images);
-
-
+  const imageElements = isLoadingChapter ? null : images.map(image => <AutoResizeImage source={image} key={image.uri || ''} style={styles.images} />);
   return (
     <SafeAreaView style={styles.container}>
       <ZoomableView
@@ -101,7 +110,7 @@ export default function ReadMangaModalScreen({ route, navigation }: MainStackScr
         zoomMax={4}
         onTouched={onReaderTouched}
       >
-        {images.map(image => <AutoResizeImage source={image} key={image.uri || ''} style={styles.images} />)}
+        {imageElements}
       </ZoomableView>
     </SafeAreaView>
   );

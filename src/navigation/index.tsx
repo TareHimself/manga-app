@@ -51,6 +51,7 @@ const MainStack = createNativeStackNavigator<MainStackParamList>();
 function MainNaivator() {
   const colorScheme = useColorScheme();
 
+
   return (
     <MainStack.Navigator screenOptions={{ headerShown: false }}>
       <MainStack.Group>

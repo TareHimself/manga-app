@@ -87,7 +87,7 @@ export type RootStackParamList = {
 export type MainStackParamList = {
   Home: undefined;
   MangaPreview: { manga: IMangaData };
-  ReadMangaModal: { manga: IMangaData; chapters: string[]; startChapter: string };
+  ReadMangaModal: { manga: IMangaData; chapters: string[]; startChapter: string; hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;

@@ -30,7 +30,7 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
 
   const initiaLimit = useRef(rows * columns);
 
-  const defaultSearch = { ...DefaultMangaDexSearch, limit: `${initiaLimit.current}` };
+  const defaultSearch = { ...DefaultMangaDexSearch };
 
   const latestSearch = useRef(defaultSearch);
 
@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
     makeSearch(latestSearch.current)
   }
 
-  const updateSearch = useValueThrottle<string>(200, onSearchCommited, '');
+  const updateSearch = useValueThrottle<string>(500, onSearchCommited, '');
 
   async function onReloadResults() {
     console.log('We need to reload results');
@@ -55,23 +55,7 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
     SetIsRefreshing(false);
   }
 
-  async function onLoadMoreResults() {
 
-    return;
-    const lastOffset = isNaN(parseInt(latestSearch.current.offset, 10)) ? 0 : parseInt(latestSearch.current.offset, 10);
-
-    const newSearch = { ...latestSearch.current, "offset": `${lastOffset + (initiaLimit.current)}` };
-
-    if (JSON.stringify(latestSearch.current) !== JSON.stringify(newSearch)) {
-      latestSearch.current = newSearch;
-      console.log('Loading more results', latestSearch.current);
-      makeSearch(latestSearch.current);
-    }
-    else {
-      console.log('ReachedApiLimit');
-    }
-
-  }
 
   const navigate = useCallback((route: keyof MainStackParamList, params: MainStackParamList[keyof MainStackParamList]) => {
     navigation.navigate(route, params)
@@ -94,7 +78,7 @@ export default function HomeScreen({ navigation }: MainStackScreenProps<'Home'>)
         renderItem={({ item, index }) => <MangaPreview data={item} key={item.id} navigate={navigate} width={itemWidth} />}
         onRefresh={onReloadResults}
         refreshing={isRefreshing}
-        onEndReached={onLoadMoreResults}
+
         onEndReachedThreshold={0.6}
 
       />

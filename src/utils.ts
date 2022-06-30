@@ -1,6 +1,6 @@
 import { Dimensions } from "react-native";
-import { EventEmitter } from 'events';
-let chaptersEmitter: EventEmitter | null = null;
+
+
 export function getDiagonalScreenSize() {
     const { width, height } = Dimensions.get('screen');
 
@@ -22,8 +22,4 @@ export function distanceBetween2Points(a: { x: number, y: number }, b: { x: numb
     return Math.sqrt((Math.pow(a.x - b.x, 2)) + (Math.pow(a.y - b.y, 2)))
 }
 
-export function getChaptersEmitter() {
-    if (!chaptersEmitter) chaptersEmitter = new EventEmitter();
 
-    return chaptersEmitter;
-}

@@ -1,22 +1,24 @@
 import React from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
+import { compareTwoStrings } from 'string-similarity';
 import MangaPreview from '../components/MangaPreview';
-import { Text, View, SafeAreaView } from '../components/Themed';
-import useMangaDexSearch, { DefaultMangaDexSearch } from '../hooks/useMangaSearch';
+import { View, SafeAreaView } from '../components/Themed';
+import useBookmarks from '../hooks/useBookmarks';
 import { useValueThrottle } from '../hooks/useValueThrottle';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';
 
 type SearchFilterProps = { onSearchChanged?: (search: string) => void; }
 
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>) {
+export default function BookmarksScreen({ navigation, route }: BaseStackScreenProps<'Root'>) {
 
   const { width, height } = useWindowDimensions();
 
-  const scale = width / 400;
+  const { bookmarks } = useBookmarks();
+
+  const [query, setQuery] = useState('');
 
   const [itemWidth, setItemWidth] = useState(200)
   if (width < itemWidth * 2) {
@@ -28,45 +30,48 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
 
   const columns = Math.max(Math.floor(height / itemWidth * 0.65), 1) + 2;
 
-  const initiaLimit = useRef(rows * columns);
-
-  const defaultSearch = { ...DefaultMangaDexSearch };
-
-  const latestSearch = useRef(defaultSearch);
-
-  const [results, makeSearch] = useMangaDexSearch(latestSearch.current);
-
   const [isRefreshing, SetIsRefreshing] = useState(false);
 
   function onSearchCommited(search: string) {
-    console.log('value commited', search)
-    latestSearch.current = { ...defaultSearch, "q": search };
-    makeSearch(latestSearch.current)
+    setQuery(search);
   }
 
-  const updateSearch = useValueThrottle<string>(500, onSearchCommited, '');
+  const updateSearch = useValueThrottle<string>(150, onSearchCommited, '');
 
   async function onReloadResults() {
-    console.log('We need to reload results');
     SetIsRefreshing(true);
-    console.log({ ...defaultSearch, q: latestSearch.current.q })
-    await makeSearch({ ...defaultSearch, q: latestSearch.current.q });
-    latestSearch.current = { ...defaultSearch, q: latestSearch.current.q };
+
     SetIsRefreshing(false);
   }
-
-
 
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
   }, [])
+
+  console.log(query.toLowerCase())
+  const filteredBookmarks = bookmarks.filter(bookmark => {
+    if (query.trim().length === 0) {
+      return true;
+    }
+
+    return bookmark.name.toLowerCase().includes(query.toLowerCase().trim());
+  }).sort((a, b) => {
+    const aRelavance = compareTwoStrings(a.name.toLowerCase().trim(), query.toLowerCase().trim());
+    const bRelavance = compareTwoStrings(b.name.toLowerCase().trim(), query.toLowerCase().trim());
+
+    if (aRelavance > bRelavance) return -1;
+
+    if (aRelavance < bRelavance) return 1;
+
+    return 0;
+  });
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
       <View
         style={[styles.searchContainer, { marginHorizontal: (Math.min(itemWidth, 200) / 200) * 5 }]
         }>
-        <TextInput style={styles.searchBar} onChangeText={updateSearch} placeholder={`What's Your Poison ?`} placeholderTextColor={'white'} />
+        <TextInput style={styles.searchBar} onChangeText={updateSearch} placeholder={`Search Your Bookmarks`} placeholderTextColor={'white'} />
       </View>
       <FlatList
 
@@ -74,7 +79,7 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
         key={rows + itemWidth}
         numColumns={rows}
         columnWrapperStyle={{ ...styles.items_x, width: rows * itemWidth }}
-        data={results}
+        data={filteredBookmarks}
         renderItem={({ item, index }) => <MangaPreview data={item} key={item.id} navigate={navigate} width={itemWidth} />}
         onRefresh={onReloadResults}
         refreshing={isRefreshing}
@@ -92,13 +97,11 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   items_y: {
-    flex: 1,
     flexDirection: 'column',
     marginBottom: 20
 
   },
   items_x: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start'
   },

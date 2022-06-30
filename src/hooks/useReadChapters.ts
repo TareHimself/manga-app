@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as SecureStore from 'expo-secure-store';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { getChaptersEmitter } from "../utils";
 import useMounted from "./useMounted";
+import { getChaptersEmitter } from "../emitters";
 
-export default function useReadChapters(mangaId: string): { hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> } {
+export default function useReadChapters(mangaId: string): { readChapters: string[], hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> } {
 
 	const instanceId = useRef(uuidv4()).current;
 
@@ -57,5 +57,5 @@ export default function useReadChapters(mangaId: string): { hasReadChapter: (cha
 		return () => { getChaptersEmitter().removeListener('update', onChaptersReadUpdated) }
 	}, [])
 
-	return { hasReadChapter, addReadChapter }
+	return { readChapters: chaptersRead, hasReadChapter, addReadChapter }
 }

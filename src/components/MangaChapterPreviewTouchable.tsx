@@ -1,14 +1,28 @@
 import { View, Text } from './Themed'
 import React from 'react'
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { IMangaDexApiChapter, MainStackParamList } from '../types';
+import { IMangaDexApiChapter } from '../types';
 
-export default function MangaChapterTouchable({ chapter, readChapter, hasReadChapter, addReadChapter }: { chapter: string; readChapter: (chapter: string) => void; hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> }) {
-    return (
-        <TouchableOpacity style={styles.container} onPress={() => { addReadChapter(chapter); readChapter(chapter); }}>
-            < Text style={{ color: hasReadChapter(chapter) ? 'red' : 'white', fontSize: 15 }}> {chapter}</Text >
-        </TouchableOpacity >
-    )
+export type MangaChhapterTouchableProps = { chapter: string; readChapter: (chapter: string) => void; hasReadChapter: boolean };
+
+export default class MangaChapterTouchable extends React.Component<MangaChhapterTouchableProps> {
+
+    constructor(props: MangaChhapterTouchableProps) {
+        super(props);
+    }
+
+    render(): React.ReactNode {
+        return (
+            <TouchableOpacity style={styles.container} onPress={() => { console.log('pressed'); this.props.readChapter(this.props.chapter); }}>
+                < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter}</Text >
+            </TouchableOpacity >
+        )
+    }
+
+    shouldComponentUpdate(nextProps: Readonly<MangaChhapterTouchableProps>, nextState: Readonly<{}>) {
+        return this.props.hasReadChapter !== nextProps.hasReadChapter;
+    }
+
 }
 
 const styles = StyleSheet.create({
@@ -18,6 +32,6 @@ const styles = StyleSheet.create({
         height: 35,
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     }
 });

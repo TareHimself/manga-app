@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView } from 'react-native';
+import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView, FlatList as DefaultFlatList, Platform, StatusBar } from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -18,6 +18,7 @@ type ThemeProps = {
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = { level?: viewLevel } & DefaultView['props'];
 export type SafeAreaViewProps = { level?: viewLevel } & DefaultSafeAreaView['props'];
+export type FlatlistProps = { level?: viewLevel } & DefaultFlatList['props'];
 
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
@@ -37,13 +38,25 @@ export function View(props: ViewProps) {
 
 }
 
-export function SafeAreaView(props: SafeAreaViewProps) {
+export function FlatList(props: FlatlistProps) {
   const { style, level, ...otherProps } = props;
 
   if (props.level) {
-    return <DefaultSafeAreaView style={[{ backgroundColor: Colors[useColorScheme()][props.level] }, style]} {...otherProps} />;
+    return <DefaultFlatList style={[{ backgroundColor: Colors[useColorScheme()][props.level] }, style]} {...otherProps} />;
   }
 
-  return <DefaultSafeAreaView style={[style]} {...otherProps} />;
+  return <DefaultFlatList style={[style]} {...otherProps} />;
 
+}
+
+export function SafeAreaView(props: SafeAreaViewProps) {
+  const { style, level, ...otherProps } = props;
+
+  const topPadding = { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }
+
+  if (props.level) {
+    return <DefaultSafeAreaView style={[{ backgroundColor: Colors[useColorScheme()][props.level] }, style, topPadding]} {...otherProps} />;
+  }
+
+  return <DefaultSafeAreaView style={[style, topPadding]} {...otherProps} />;
 }

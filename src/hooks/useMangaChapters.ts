@@ -21,7 +21,7 @@ export default function useMangaDexChapters(id: string): [string[]] {
 
         }
 
-        fetchChapters()
+        fetchChapters();
     }, [])
 
     return [chapters]

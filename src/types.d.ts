@@ -78,22 +78,22 @@ export interface IMangaReadableChapter {
   total: number
 }
 
-export type RootStackParamList = {
-  Main: undefined;
-  Modal: undefined;
-  NotFound: undefined;
+export type RootTabParamList = {
+  Discover: undefined;
+  Bookmarks: undefined;
+  Settings: undefined;
 };
 
-export type MainStackParamList = {
-  Home: undefined;
+export type BaseStackParamList = {
+  Root: undefined;
   MangaPreview: { manga: IMangaData };
   ReadMangaModal: { manga: IMangaData; chapters: string[]; startChapter: string; hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> };
 };
 
-export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;
 
-export type MainStackScreenProps<T extends keyof MainStackParamList> = NativeStackScreenProps<MainStackParamList, T>;
+export type RootTabScreenProps<T extends keyof RootTabParamList> = NativeStackScreenProps<RootTabParamList, T>;
 
+export type BaseStackScreenProps<T extends keyof BaseStackParamList> = NativeStackScreenProps<BaseStackParamList, T>;
 
 export type FlexGridViewProps = {
   listStyle?: StyleProp<ViewStyle>;
@@ -108,5 +108,8 @@ export type RootTabParamList = {
   name: string;
 };
 
-export type RootTabScreenProps<Screen extends keyof RootTabParamList> = NativeStackScreenProps<RootStackParamList>;
+export type RootTabScreenProps<Screen extends keyof RootTabParamList> = NativeStackScreenProps<RootTabParamList>;
+
+export type Vector2 = { x: number, y: number };
+export type Vector3 = {}
 

@@ -4,13 +4,13 @@ import AutoResizeImage from '../components/AutoResizeImage';
 import ZoomableView, { ZoomableViewHandlers } from '../components/ZoomableView';
 import { SafeAreaView } from '../components/Themed';
 import useMangaDexChapterCdn from '../hooks/useMangaChapterCdn';
-import { MainStackScreenProps } from '../types';
+import { BaseStackScreenProps } from '../types';
 import { getDiagonalScreenSize } from '../utils';
 import { useCallback } from 'react';
 import { useWindowDimensions } from 'react-native';
 import useReadChapters from '../hooks/useReadChapters';
 
-export default function ReadMangaModalScreen({ route, navigation }: MainStackScreenProps<'ReadMangaModal'>) {
+export default function ReadMangaModalScreen({ route, navigation }: BaseStackScreenProps<'ReadMangaModal'>) {
 
   const { manga, startChapter, chapters } = route.params;
 

@@ -1,12 +1,44 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView, Text, View } from '../components/Themed';
+import { Dimensions, ScrollView, StyleSheet, Image, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
+import { SafeAreaView, Text, View, FlatList } from '../components/Themed';
 import useMangaDexChapters from '../hooks/useMangaChapters';
-import { MainStackScreenProps, MainStackParamList, IMangaDexApiChapter } from '../types';
+import { BaseStackParamList, BaseStackScreenProps, IMangaData, IMangaDexApiChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';
 import useReadChapters from '../hooks/useReadChapters';
-export default function MangaPreviewScreen({ navigation, route }: MainStackScreenProps<'MangaPreview'>) {
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import useBookmarks from '../hooks/useBookmarks';
+
+function ChaptersList({ manga, navigation, chapters }: { manga: IMangaData, navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined>, chapters: string[] }) {
+
+  const { readChapters, hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+
+  const onReadChapter = (chapter: string) => {
+    if (manga) {
+      if (!hasReadChapter(chapter)) addReadChapter(chapter);
+
+      navigate('ReadMangaModal', { manga: manga, chapters: chapters, startChapter: chapter });
+    }
+  }
+
+  const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
+    navigation.navigate(route, params)
+  }, []);
+
+  return (
+    <FlatList
+      level={'level1'}
+      style={[styles.scroll]}
+      contentContainerStyle={{ alignItems: 'stretch' }}
+      key={readChapters.length}
+      data={chapters}
+      renderItem={({ item, index }) => <MangaChapterPreviewTouchable chapter={item} key={item} readChapter={onReadChapter} hasReadChapter={hasReadChapter(item)} />}
+      onEndReachedThreshold={0.6} />
+  )
+}
+
+export default function MangaPreviewScreen({ navigation, route }: BaseStackScreenProps<'MangaPreview'>) {
 
   const { manga } = route.params;
 
@@ -17,41 +49,49 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
   const description = "Come along with me";
   const status = " unknown";
 
-  const [chapters] = useMangaDexChapters(manga.id || '');
-
-  const [wantsToRead, setWantsToRead] = useState(false);
   const [isOnInfo, setIsOnInfo] = useState(false);
 
-  const onReadChapter = (chapter: string) => {
-    if (manga) {
-      navigate('ReadMangaModal', { manga: manga, chapters: chapters, startChapter: chapter })
-    }
-  }
+  const { width } = useWindowDimensions();
 
-  const navigate = useCallback((route: keyof MainStackParamList, params: MainStackParamList[keyof MainStackParamList]) => {
-    navigation.navigate(route, params)
-  }, [])
+  const [chapters] = useMangaDexChapters(manga.id || '');
 
-  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+  const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
-  const chaptersList = isOnInfo ? null : chapters.map(chapter => <MangaChapterPreviewTouchable chapter={chapter} key={chapter} readChapter={onReadChapter} hasReadChapter={hasReadChapter} addReadChapter={addReadChapter} />);
+  const bIsBookmarked = IsBookmarked(manga.id);
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
 
-      <View style={styles.previewContainer}></View>
-      <View style={[styles.previewContainer, { flexDirection: 'row' }]} level={'level1'}>
+      <View style={styles.standardContainer}></View>
+      <View style={[styles.standardContainer, { flexDirection: 'row' }]} level={'level1'}>
         <View style={styles.imageContainer}>
           <Image style={styles.coverImg} source={{ uri: coverUrl }} />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.status}>status | {status}</Text>
+          <View>
+            <Text style={styles.title} numberOfLines={2}>{title}</Text>
+            <Text style={styles.status}>status | {status}</Text>
+          </View>
+
+          <View style={{ width: '100%', alignItems: 'flex-end' }}>
+            <TouchableOpacity onPress={() => {
+              if (bIsBookmarked) {
+                removeBookmark(manga.id);
+              }
+              else {
+                addBookmark(manga);
+              }
+            }}>
+              {bIsBookmarked ? <Ionicons name="bookmark" size={40} color="white" /> : <Ionicons name="bookmark-outline" size={40} color="white" />}
+
+            </TouchableOpacity>
+
+          </View>
         </View>
       </View>
 
-      <View style={[styles.previewContainer, { flexDirection: 'row', height: 60 }]} level={'level1'}>
-        <View style={[styles.selectOptionBackground, { right: isOnInfo ? 0 : '-450%' }]} level={'level2'} />
+      <View style={[styles.standardContainer, { flexDirection: 'row', height: 60 }]} level={'level1'}>
+        <View style={[styles.selectOptionBackground, { left: isOnInfo ? 0 : (((width * 0.9) - 20) / 2) }]} level={'level2'} />
         <TouchableOpacity style={styles.selectOptionButton} onPress={() => { setIsOnInfo(true) }}>
           <Text style={styles.readShortcourtButtonText}>Info</Text>
         </TouchableOpacity>
@@ -60,17 +100,13 @@ export default function MangaPreviewScreen({ navigation, route }: MainStackScree
         </TouchableOpacity>
       </View>
 
-
-      <View style={[styles.previewContainer, { flex: 1 }]} level={'level1'}>
-        {isOnInfo ?
-          null :
-          <ScrollView style={styles.scroll} contentContainerStyle={{ alignItems: 'flex-start' }}>
-            {chaptersList}
-          </ScrollView>
-        }
-
-      </View>
-
+      {isOnInfo ?
+        <ScrollView style={[styles.infoContainer, { flex: 1 }]}>
+          <View level={'level1'} style={[styles.infoSubContainer, { height: 200 }]}>
+          </View>
+        </ScrollView> :
+        <ChaptersList manga={manga} navigation={navigation} chapters={chapters} />
+      }
 
     </SafeAreaView>
 
@@ -85,13 +121,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1
   },
-  previewContainer: {
+  standardContainer: {
     width: '90%',
     marginVertical: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
+    marginLeft: '5%',
     borderRadius: 15,
+  },
+  infoContainer: {
+    width: '90%',
+    marginBottom: 10,
     marginLeft: '5%'
+  },
+  infoSubContainer: {
+    width: '100%',
+    marginVertical: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 15,
   },
   topBar: {
     flex: 1,
@@ -109,7 +157,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15
   },
   textContainer: {
-    width: '60%',
+    width: '65%',
+    justifyContent: 'space-between'
   },
   imageContainer: {
     minWidth: 100,
@@ -127,9 +176,10 @@ const styles = StyleSheet.create({
     borderRadius: 15
   },
   title: {
-    fontSize: 20,
+    fontSize: 17,
     marginTop: 15,
-    marginBottom: 15
+    marginBottom: 15,
+    fontWeight: 'bold'
   },
   status: {
     fontSize: 15,
@@ -137,7 +187,12 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-    width: '100%'
+    width: '90%',
+    marginVertical: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    marginLeft: '5%'
   },
   contentView: {
     flex: 1,

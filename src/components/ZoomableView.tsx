@@ -38,11 +38,11 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
     scrollSpeed: number;
     touchTimeout: number;
     scrollDampening: number;
-    mainViewLayout: { x: number; y: number; width: number; height: number; };
-    subViewLayout: { x: number; y: number; width: number; height: number; };
-    overlayViewLayout: { x: number; y: number; width: number; height: number; };
-    dimensionsSubscription: null | ReactNative.EmitterSubscription;
+    mainViewLayout: ReactNative.LayoutRectangle;
+    subViewLayout: ReactNative.LayoutRectangle;
+    overlayViewLayout: ReactNative.LayoutRectangle;
     animatedZoomListener: null | string;
+    dimensionsSubscription: null | ReactNative.EmitterSubscription;
 
     constructor(props: ZoomableViewProps) {
         super(props);
@@ -237,17 +237,6 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
         });
     }
 
-    /* const zoomMin = zoomMin || 1;
-     const zoomMax = zoomMax || 3;
-     const scrollSpeed = scrollSpeed || 20;
-     const touchTimeout = touchMsTimeout || 100;
-     const scrollDampening = 100;
- 
-     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
- 
-    const [newResponderIndex, setValueToChangeState] = useState(0);*/
-
-
     applyScrollDelta(dx: number, dy: number) {
         const newPositionX = (this.handlers.scrollX as any)._value + dx;
         const newPositionY = (this.handlers.scrollY as any)._value + dy;
@@ -379,7 +368,6 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
 
         return true;
     }
-
 
     render() {
         if (!this.panResponder?.panHandlers) {

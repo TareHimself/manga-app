@@ -48,16 +48,15 @@ export default function BookmarksScreen({ navigation, route }: BaseStackScreenPr
     navigation.navigate(route, params)
   }, [])
 
-  console.log(query.toLowerCase())
   const filteredBookmarks = bookmarks.filter(bookmark => {
     if (query.trim().length === 0) {
       return true;
     }
 
-    return bookmark.name.toLowerCase().includes(query.toLowerCase().trim());
+    return bookmark.title.toLowerCase().includes(query.toLowerCase().trim());
   }).sort((a, b) => {
-    const aRelavance = compareTwoStrings(a.name.toLowerCase().trim(), query.toLowerCase().trim());
-    const bRelavance = compareTwoStrings(b.name.toLowerCase().trim(), query.toLowerCase().trim());
+    const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), query.toLowerCase().trim());
+    const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), query.toLowerCase().trim());
 
     if (aRelavance > bRelavance) return -1;
 

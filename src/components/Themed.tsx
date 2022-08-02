@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView, FlatList as DefaultFlatList, Platform, StatusBar } from 'react-native';
+import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView, FlatList as DefaultFlatList, Platform, StatusBar, ScrollView as DefaultScrollView } from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -19,6 +19,7 @@ export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = { level?: viewLevel } & DefaultView['props'];
 export type SafeAreaViewProps = { level?: viewLevel } & DefaultSafeAreaView['props'];
 export type FlatlistProps = { level?: viewLevel } & DefaultFlatList['props'];
+export type ScrollViewProps = { level?: viewLevel } & DefaultScrollView['props']
 
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
@@ -59,4 +60,14 @@ export function SafeAreaView(props: SafeAreaViewProps) {
   }
 
   return <DefaultSafeAreaView style={[style, topPadding]} {...otherProps} />;
+}
+
+export function ScrollView(props: ScrollViewProps) {
+  const { style, level, ...otherProps } = props;
+
+  if (props.level) {
+    return <DefaultScrollView style={[{ backgroundColor: Colors[useColorScheme()][props.level] }, style]} {...otherProps} />;
+  }
+
+  return <DefaultScrollView style={[style]} {...otherProps} />;
 }

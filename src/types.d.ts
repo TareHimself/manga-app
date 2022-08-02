@@ -21,61 +21,24 @@ enum EMangaContentRating {
   MANGA = "manga",
 }
 
+export interface IMangaPreviewData {
+  id: string;
+  title: string;
+  cover: string;
+}
+
+export interface IMangaChapter {
+  id: string;
+  title: string;
+}
+
 export interface IMangaData {
   id: string;
-  name: string;
+  title: string;
   cover: string;
-  chapters: string;
-  tags: string[]
-
-}
-
-export interface IMangaVolume {
-
-}
-
-
-export interface IMangaDexApiSearchResponse {
-  result: "ok";
-  response: string;
-  data: IMangaData[];
-  limit: number;
-  offset: number;
-  total: number;
-
-}
-
-export interface IMangaDexApiChapter {
-  id: string;
-  type: 'chapter';
-  attributes: {
-    volume: string;
-    chapter: string;
-    title: string;
-    translatedLanguage: languages;
-    externalUrl: null,
-    publishAt: string,
-    readableAt: string;
-    createdAt: string;
-    updatedAt: string;
-    pages: number;
-    version: number
-  },
-  relationships: { id: string; type: mangaRelationshipType }[];
-}
-
-export interface IMangaDexApiChaptersResponse {
-  result: "ok";
-  response: string;
-  data: IMangaDexApiChapter[];
-  limit: number;
-  offset: number;
-  total: number;
-}
-
-export interface IMangaReadableChapter {
-  base: string;
-  total: number
+  tags: string[];
+  status: string;
+  description: string;
 }
 
 export type RootTabParamList = {
@@ -86,8 +49,8 @@ export type RootTabParamList = {
 
 export type BaseStackParamList = {
   Root: undefined;
-  MangaPreview: { manga: IMangaData };
-  ReadMangaModal: { manga: IMangaData; chapters: string[]; startChapter: string; hasReadChapter: (chapter: string) => boolean, addReadChapter: (chapter: string) => Promise<void> };
+  MangaPreview: { manga: IMangaPreviewData };
+  ReadMangaModal: { manga: IMangaData; chapters: IMangaChapter[]; startChapter: IMangaChapter; hasReadChapter: (chapterId: string) => boolean, addReadChapter: (chapterId: string) => Promise<void> };
 };
 
 

@@ -334,7 +334,7 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
     }
 
     onZoomChanged(state: { value: number }) {
-        this.widthAnimated.setValue(state.value * this.mainViewLayout.width)
+        //this.widthAnimated.setValue(state.value * this.mainViewLayout.width)
     }
 
     componentDidMount() {

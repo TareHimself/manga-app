@@ -3,12 +3,9 @@ import { useCallback, useRef, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import MangaPreview from '../components/MangaPreview';
 import { Text, View, SafeAreaView } from '../components/Themed';
-import useMangaDexSearch, { DefaultMangaDexSearch } from '../hooks/useMangaSearch';
+import useMangaDexSearch, { DefaultMangaSearch } from '../hooks/useMangaSearch';
 import { useValueThrottle } from '../hooks/useValueThrottle';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';
-
-type SearchFilterProps = { onSearchChanged?: (search: string) => void; }
-
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -30,7 +27,7 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
 
   const initiaLimit = useRef(rows * columns);
 
-  const defaultSearch = { ...DefaultMangaDexSearch };
+  const defaultSearch = { ...DefaultMangaSearch };
 
   const latestSearch = useRef(defaultSearch);
 
@@ -39,19 +36,16 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
   const [isRefreshing, SetIsRefreshing] = useState(false);
 
   function onSearchCommited(search: string) {
-    console.log('value commited', search)
-    latestSearch.current = { ...defaultSearch, "q": search };
+    latestSearch.current = { ...defaultSearch, "s": search };
     makeSearch(latestSearch.current)
   }
 
   const updateSearch = useValueThrottle<string>(500, onSearchCommited, '');
 
   async function onReloadResults() {
-    console.log('We need to reload results');
     SetIsRefreshing(true);
-    console.log({ ...defaultSearch, q: latestSearch.current.q })
-    await makeSearch({ ...defaultSearch, q: latestSearch.current.q });
-    latestSearch.current = { ...defaultSearch, q: latestSearch.current.q };
+    await makeSearch({ ...defaultSearch, q: latestSearch.current.s });
+    latestSearch.current = { ...defaultSearch, s: latestSearch.current.s };
     SetIsRefreshing(false);
   }
 

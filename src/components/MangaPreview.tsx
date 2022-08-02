@@ -1,9 +1,9 @@
 import { View, Text } from './Themed';
 import { Dimensions, StyleSheet, Image, TouchableOpacity, ImageBackground, View as DefaultView } from 'react-native';
 import React, { PureComponent } from 'react';
-import { IMangaData, BaseStackParamList } from '../types';
+import { IMangaData, BaseStackParamList, IMangaPreviewData } from '../types';
 
-export type MangaPreviewProps = { data: IMangaData, navigate: (route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => void; width: number; };
+export type MangaPreviewProps = { data: IMangaPreviewData, navigate: (route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => void; width: number; };
 
 export default class MangaPreview extends PureComponent<MangaPreviewProps> {
 
@@ -17,7 +17,7 @@ export default class MangaPreview extends PureComponent<MangaPreviewProps> {
     return (
       <TouchableOpacity onPress={() => { navigate('MangaPreview', { manga: data }) }} style={{ ...styles.container, width: this.props.width, maxWidth: this.props.width, padding: 5 * scale }}>
         <ImageBackground style={styles.img} source={{ uri: coverUrl }} />
-        <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.name}</Text></DefaultView>
+        <DefaultView style={styles.titleContainer}><Text numberOfLines={2} style={styles.title}>{data.title}</Text></DefaultView>
       </TouchableOpacity>
     )
   }

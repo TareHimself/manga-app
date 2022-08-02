@@ -10,7 +10,7 @@ import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import NotFoundScreen from '../screens/NotFoundScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MangaPreviewScreen from '../screens/MangaPreviewScreen';
 import { BaseStackParamList, RootTabParamList } from '../types';
@@ -53,7 +53,7 @@ function RootNavigator() {
             <Feather name="bookmark" size={size} color={color} />
           ),
         }} />
-      <RootTab.Screen name="Settings" component={NotFoundScreen}
+      <RootTab.Screen name="Settings" component={SettingsScreen}
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size }) => (

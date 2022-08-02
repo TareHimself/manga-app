@@ -1,22 +1,21 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IMangaData, IMangaDexApiSearchResponse } from "../types";
+import { IMangaData, IMangaPreviewData } from "../types";
 import useMounted from "./useMounted";
 import { useUniqueId } from "./useUniqueId";
 import { compareTwoStrings } from "string-similarity";
-export const DefaultMangaDexSearch = { "q": "" };
+export const DefaultMangaSearch = { "s": "" };
 
-export default function useMangaDexSearch(search: Record<string, string> = DefaultMangaDexSearch): [IMangaData[], (search: Record<string, string>) => Promise<void>] {
-    const [results, setResults] = useState<IMangaData[]>([]);
+export default function useMangaDexSearch(search: Record<string, string> = DefaultMangaSearch): [IMangaPreviewData[], (search: Record<string, string>) => Promise<void>] {
+    const [results, setResults] = useState<IMangaPreviewData[]>([]);
     const uniqueId = useUniqueId();
     const IsMounted = useMounted();
     const lastRequestController = useRef<AbortController | null>();
 
-    const makeSearch = useCallback(async (search: Record<string, string> = DefaultMangaDexSearch) => {
+    const makeSearch = useCallback(async (search: Record<string, string> = DefaultMangaSearch) => {
         try {
 
-            const url = `http://144.172.75.61:8089/search?${new URLSearchParams({ ...search }).toString()}`;
-            console.log('Making Request', url)
+            const url = `http://144.172.75.61:8089/mc/search?${new URLSearchParams({ ...search }).toString()}`;
 
             if (lastRequestController.current) {
                 lastRequestController.current.abort();
@@ -32,12 +31,12 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
                     signal: lastRequestController.current.signal
                 }).then((response) => {
 
-                    const result: IMangaData[] = response.data;
+                    const result: IMangaPreviewData[] = response.data;
 
-                    if (search['q'].toLowerCase().trim() && search['q'].toLowerCase().trim().length > 3) {
+                    if (search['s'].toLowerCase().trim() && search['s'].toLowerCase().trim().length > 3) {
                         result.sort((a, b) => {
-                            const aRelavance = compareTwoStrings(a.name.toLowerCase().trim(), search['q'].toLowerCase().trim());
-                            const bRelavance = compareTwoStrings(b.name.toLowerCase().trim(), search['q'].toLowerCase().trim());
+                            const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), search['q'].toLowerCase().trim());
+                            const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), search['q'].toLowerCase().trim());
 
                             if (aRelavance > bRelavance) return -1;
 
@@ -46,10 +45,8 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
                             return 0;
                         });
                     }
-
                     setResults(result);
                 }).catch((error) => {
-                    console.log(error, 'Ignore this ERROR')
                 });
             }
 

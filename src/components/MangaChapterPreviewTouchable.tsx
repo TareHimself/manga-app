@@ -1,20 +1,19 @@
 import { View, Text } from './Themed'
 import React from 'react'
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { IMangaDexApiChapter } from '../types';
+import { IMangaChapter } from '../types';
 
-export type MangaChhapterTouchableProps = { chapter: string; readChapter: (chapter: string) => void; hasReadChapter: boolean };
+export type MangaChhapterTouchableProps = { chapter: IMangaChapter; readChapter: (chapter: IMangaChapter) => void; hasReadChapter: boolean };
 
 export default class MangaChapterTouchable extends React.Component<MangaChhapterTouchableProps> {
 
     constructor(props: MangaChhapterTouchableProps) {
         super(props);
     }
-
     render(): React.ReactNode {
         return (
-            <TouchableOpacity style={styles.container} onPress={() => { console.log('pressed'); this.props.readChapter(this.props.chapter); }}>
-                < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter}</Text >
+            <TouchableOpacity style={styles.container} onPress={() => { this.props.readChapter(this.props.chapter); }}>
+                < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
             </TouchableOpacity >
         )
     }

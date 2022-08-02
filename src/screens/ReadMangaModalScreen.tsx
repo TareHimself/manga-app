@@ -15,7 +15,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
   const { manga, startChapter, chapters } = route.params;
 
   const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
-  const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id, startChapter)
+  const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id, startChapter.id)
   const currentChapterIndex = useRef(chapters.indexOf(startChapter));
 
   const { width, height } = useWindowDimensions();
@@ -29,10 +29,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
         // go to previous chapter
         if (currentChapterIndex.current + 1 < chapters.length) {
           currentChapterIndex.current += 1;
-          fetchChapter(manga.id, chapters[currentChapterIndex.current])
+          fetchChapter(manga.id, chapters[currentChapterIndex.current].id)
 
-          if (!hasReadChapter(chapters[currentChapterIndex.current])) {
-            addReadChapter(chapters[currentChapterIndex.current]);
+          if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
+            addReadChapter(chapters[currentChapterIndex.current].id);
           }
 
           Animated.timing(handlers.scrollY, {
@@ -63,10 +63,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
         // go to next chapter
         if (currentChapterIndex.current !== 0) {
           currentChapterIndex.current -= 1;
-          fetchChapter(manga.id, chapters[currentChapterIndex.current])
+          fetchChapter(manga.id, chapters[currentChapterIndex.current].id)
 
-          if (!hasReadChapter(chapters[currentChapterIndex.current])) {
-            addReadChapter(chapters[currentChapterIndex.current]);
+          if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
+            addReadChapter(chapters[currentChapterIndex.current].id);
           }
 
           Animated.timing(handlers.scrollY, {
@@ -92,13 +92,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
     }
   }, [loadedChapter, chapters, currentChapterIndex, manga, hasReadChapter, addReadChapter])
 
-  const images: ImageURISource[] = [];
-  if (loadedChapter) {
-    console.log(loadedChapter)
-    for (let i = 0; i < loadedChapter.total; i++) {
-      images.push({ uri: loadedChapter.base.replace('{index}', `${i + 1}`) })
-    }
-  }
+  const images: ImageURISource[] = loadedChapter?.map((c) => { return { uri: c } }) || [];
 
   const imageElements = isLoadingChapter ? null : images.map(image => <AutoResizeImage source={image} key={image.uri || ''} style={styles.images} />);
   return (

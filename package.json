@@ -40,7 +40,9 @@
     "react-native-web": "0.17.7",
     "string-similarity": "^4.0.4",
     "uuid": "^8.3.2",
-    "webpack-dev-server": "~3.11.0"
+    "webpack-dev-server": "~3.11.0",
+    "expo-sharing": "~10.2.0",
+    "expo-document-picker": "~10.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

@@ -54,7 +54,6 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
   }, [])
-
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
       <View

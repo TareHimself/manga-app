@@ -32,11 +32,10 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
                 }).then((response) => {
 
                     const result: IMangaPreviewData[] = response.data;
-
                     if (search['s'].toLowerCase().trim() && search['s'].toLowerCase().trim().length > 3) {
                         result.sort((a, b) => {
-                            const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), search['q'].toLowerCase().trim());
-                            const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), search['q'].toLowerCase().trim());
+                            const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), search['s'].toLowerCase().trim());
+                            const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), search['s'].toLowerCase().trim());
 
                             if (aRelavance > bRelavance) return -1;
 
@@ -45,7 +44,7 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
                             return 0;
                         });
                     }
-                    setResults(result);
+                    setResults([...result]);
                 }).catch((error) => {
                 });
             }

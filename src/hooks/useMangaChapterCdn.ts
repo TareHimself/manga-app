@@ -21,7 +21,7 @@ export default function useMangaDexChapterCdn(mangaId: string, chapterId: string
 
             const response: string[] | 'cancelled' = (await axios.get(url)).data;
 
-
+            console.log(url, response)
             if (response !== 'cancelled') {
 
                 loadedChapters.current.set(chapterId, response);

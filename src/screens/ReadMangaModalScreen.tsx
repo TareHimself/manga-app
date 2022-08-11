@@ -95,6 +95,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
   const images: ImageURISource[] = loadedChapter?.map((c) => { return { uri: c } }) || [];
 
   const imageElements = isLoadingChapter ? null : images.map(image => <AutoResizeImage source={image} key={image.uri || ''} style={styles.images} />);
+
   return (
     <SafeAreaView style={styles.container}>
       <ZoomableView

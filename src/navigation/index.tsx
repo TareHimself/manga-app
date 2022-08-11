@@ -17,6 +17,7 @@ import { BaseStackParamList, RootTabParamList } from '../types';
 import ReadMangaModalScreen from '../screens/ReadMangaModalScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import BookmarksScreen from '../screens/BookmarksScreen';
+import { RootSiblingParent } from 'react-native-root-siblings';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
 
@@ -24,8 +25,11 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
     <NavigationContainer
       theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
     >
-      <RootNavigator />
+      <RootSiblingParent>
+        <RootNavigator />
+      </RootSiblingParent>
     </NavigationContainer>
+
   );
 }
 

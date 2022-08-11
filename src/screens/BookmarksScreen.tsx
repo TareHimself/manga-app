@@ -17,7 +17,6 @@ export default function BookmarksScreen({ navigation, route }: BaseStackScreenPr
   const { width, height } = useWindowDimensions();
 
   const { bookmarks } = useBookmarks();
-
   const [query, setQuery] = useState('');
 
   const [itemWidth, setItemWidth] = useState(200)
@@ -79,7 +78,7 @@ export default function BookmarksScreen({ navigation, route }: BaseStackScreenPr
         numColumns={rows}
         columnWrapperStyle={{ ...styles.items_x, width: rows * itemWidth }}
         data={filteredBookmarks}
-        renderItem={({ item, index }) => <MangaPreview data={item} key={item.id} navigate={navigate} width={itemWidth} />}
+        renderItem={({ item, index }) => <MangaPreview data={item} key={item.id + item.cover + item.title} navigate={navigate} width={itemWidth} />}
         onRefresh={onReloadResults}
         refreshing={isRefreshing}
 

@@ -68,7 +68,7 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
         numColumns={rows}
         columnWrapperStyle={{ ...styles.items_x, width: rows * itemWidth }}
         data={results}
-        renderItem={({ item, index }) => <MangaPreview data={item} key={item.id} navigate={navigate} width={itemWidth} />}
+        renderItem={({ item, index }) => <MangaPreview data={item} key={item.id + item.cover + item.title} navigate={navigate} width={itemWidth} />}
         onRefresh={onReloadResults}
         refreshing={isRefreshing}
 

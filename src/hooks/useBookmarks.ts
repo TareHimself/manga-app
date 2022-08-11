@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import * as SecureStore from 'expo-secure-store';
+import { useCallback, useEffect, useRef } from "react";
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
-import useMounted from "./useMounted";
 import Constants from "expo-constants"
-import { IMangaData, IMangaPreviewData } from "../types";
-import { getBookmarksEmitter, getChaptersEmitter } from "../emitters";
+import { IMangaPreviewData } from "../types";
 import * as FileSystem from 'expo-file-system';
+import usePersistence from "./usePersistence";
+import useSource from "./useSource";
+
+export type BookmarksPersistencePayload = { op: 'add' | 'remove' | 'refresh', data?: IMangaPreviewData | string };
 
 export default function useBookmarks(): { IsBookmarked: (id: string) => boolean; bookmarks: IMangaPreviewData[], addBookmark: (manga: IMangaPreviewData) => Promise<void>, removeBookmark: (id: string) => Promise<void> } {
 
-	const savePath = `${FileSystem.documentDirectory!}bookmarks.dat`;
+	const { tryUpdateState, sendEvent, addCallback } = usePersistence<BookmarksPersistencePayload>('bookmarks');
 
-	const instanceId = useRef(uuidv4()).current;
+	const { source } = useSource();
 
-	const IsMounted = useMounted();
+	const savePath = `${FileSystem.documentDirectory!}${source.id}_bookmarks.dat`;
 
 	const bookmarks = useRef<Map<string, IMangaPreviewData>>(new Map<string, IMangaPreviewData>()).current;
 
-	const [forcedRenders, setForcedRenders] = useState(0);
-
 	async function commitToStorage() {
-		await FileSystem.writeAsStringAsync(savePath, JSON.stringify({ d: Array.from(bookmarks.values()), v: Constants.manifest!.version }), { encoding: 'utf8' });
+		await FileSystem.writeAsStringAsync(savePath, JSON.stringify({ s: source.id, d: Array.from(bookmarks.values()), v: Constants.manifest!.version }), { encoding: 'utf8' });
 	}
 
-	async function fetchFromStorage() {
+	const fetchFromStorage = useCallback(async () => {
+		console.log(savePath, source.id)
+		bookmarks.clear();
 		const tmp = await FileSystem.getInfoAsync(savePath);
 		if (tmp.exists) {
 			const bookmarksAsString = await FileSystem.readAsStringAsync(savePath, { encoding: 'utf8' });
@@ -36,80 +36,67 @@ export default function useBookmarks(): { IsBookmarked: (id: string) => boolean;
 			}
 		}
 
-		if (IsMounted()) {
-			setForcedRenders(forcedRenders + 1);
-		}
-	}
+		tryUpdateState();
+	}, [tryUpdateState, source.id])
 
-	const addBookmark = useCallback(async (manga: IMangaPreviewData, broadcast: boolean = true) => {
+	const addBookmark = useCallback(async (manga: IMangaPreviewData, bRecievedFromInstance: boolean = false) => {
 		const bAlreadyExists = bookmarks.get(manga.id) !== undefined;
 
 		bookmarks.set(manga.id, manga);
+		//console.log('adding bookmark', manga.id, bookmarks.size)
+		if (!bAlreadyExists) {
+			tryUpdateState();
 
-		if (IsMounted() && !bAlreadyExists) {
-			setForcedRenders(forcedRenders + 1);
 		}
 
-		if (broadcast) {
-			getBookmarksEmitter().emit('update', instanceId, 'add', manga);
+		if (!bRecievedFromInstance) {
+			sendEvent('change', { op: 'add', data: manga })
 			await commitToStorage();
 		}
 
-	}, [instanceId, forcedRenders, setForcedRenders, bookmarks, IsMounted]);
+	}, [sendEvent, tryUpdateState, bookmarks]);
 
-	const removeBookmark = useCallback(async (id: string, broadcast: boolean = true) => {
+	const removeBookmark = useCallback(async (id: string, bRecievedFromInstance: boolean = false) => {
 		if (bookmarks.get(id)) {
 			bookmarks.delete(id);
 
-			if (IsMounted()) {
-				setForcedRenders(forcedRenders + 1);
-			}
+			tryUpdateState();
 
-			if (broadcast) {
-				getBookmarksEmitter().emit('update', instanceId, 'remove', id);
+			if (!bRecievedFromInstance) {
+				sendEvent('change', { op: 'remove', data: id })
 				await commitToStorage();
 			}
 		}
-	}, [instanceId, forcedRenders, setForcedRenders, bookmarks, IsMounted]);
+	}, [sendEvent, tryUpdateState, bookmarks]);
 
 	const IsBookmarked = useCallback((id: string) => {
 		return bookmarks.get(id) !== undefined;
-	}, [instanceId, forcedRenders, setForcedRenders, bookmarks, IsMounted]);
+	}, [bookmarks]);
 
 	useEffect(() => {
-		async function onBookmarksUpdated(causer: string, method: 'add' | 'remove' | 'refresh', update: IMangaPreviewData | string) {
+		async function onBookmarksUpdated({ op, data }: BookmarksPersistencePayload) {
+			console.log('recieved update', op)
+			switch (op) {
+				case 'add':
+					addBookmark((data as IMangaPreviewData), true);
+					break;
 
-			if (causer !== instanceId && IsMounted()) {
-				switch (method) {
-					case 'add':
-						addBookmark((update as IMangaPreviewData), false);
-						break;
+				case 'remove':
+					removeBookmark((data as string), true);
+					break;
 
-					case 'remove':
-						removeBookmark((update as string), false);
-						break;
-
-					case 'refresh':
-						console.log('refresh recieved')
-						bookmarks.clear();
-						await fetchFromStorage();
-						break;
-				}
+				case 'refresh':
+					bookmarks.clear();
+					await fetchFromStorage();
+					break;
 			}
 		}
-
-		getBookmarksEmitter().addListener('update', onBookmarksUpdated);
-		return () => { getBookmarksEmitter().removeListener('update', onBookmarksUpdated) }
-	}, [forcedRenders]);
+		return addCallback('change', onBookmarksUpdated)
+	}, [addBookmark, removeBookmark, fetchFromStorage]);
 
 	useEffect(() => {
-
-		async function loadBookmarks() {
-			await fetchFromStorage();
-		}
-
-		loadBookmarks();
-	}, [instanceId])
+		fetchFromStorage();
+	}, [source.id])
 
 	return { IsBookmarked, bookmarks: (Array.from(bookmarks.values())), addBookmark, removeBookmark }
 }

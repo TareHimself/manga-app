@@ -76,3 +76,5 @@ export type RootTabScreenProps<Screen extends keyof RootTabParamList> = NativeSt
 export type Vector2 = { x: number, y: number };
 export type Vector3 = {}
 
+export type MangaSource = { id: string, name: string }
+

@@ -10,10 +10,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
+import usePersistence from '../hooks/usePersistence';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
   const { readChapters, hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+
+
 
   const onReadChapter = (chapter: IMangaChapter) => {
     if (manga) {
@@ -66,8 +69,14 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
+
   const bIsBookmarked = IsBookmarked(mangaPreview.id);
 
+  const { addCallback } = usePersistence('mangaSource');
+
+  useEffect(() => {
+    addCallback('change', () => { navigation.navigate('Root') })
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>

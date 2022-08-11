@@ -1,6 +1,5 @@
 import { Dimensions } from "react-native";
 
-
 export function getDiagonalScreenSize() {
     const { width, height } = Dimensions.get('screen');
 

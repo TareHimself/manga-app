@@ -30,7 +30,7 @@ export default function useBookmarks(): { IsBookmarked: (id: string) => boolean;
 	}, [dispatch]);
 
 	const IsBookmarked = useCallback((id: string) => {
-		return Object.keys(bookmarks).includes(id);
+		return bookmarks[id] !== undefined;
 	}, [bookmarks]);
 
 	useEffect(() => {

@@ -60,7 +60,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const manga = useManga(mangaPreview.id) || { ...mangaPreview, description: 'loading', status: 'loading', tags: [] };
 
-  const { title, cover, description, status } = manga;
+  const { title, cover, description, status, id } = manga;
 
   const [isOnInfo, setIsOnInfo] = useState(true);
 
@@ -71,7 +71,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
 
-  const bIsBookmarked = IsBookmarked(mangaPreview.id);
+  const bIsBookmarked = IsBookmarked(manga.id);
 
   const lastSource = useRef(useAppSelector(state => state.source.source.id));
   const currentSource = useAppSelector(state => state.source.source.id);

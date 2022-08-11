@@ -36,7 +36,7 @@ export default function useMangaDexChapterCdn(mangaId: string, chapterId: string
 
     useEffect(() => {
         fetchChapter(mangaId, chapterId);
-    }, [source])
+    }, [])
 
     return [isLoadingChapter, loadedChapter, fetchChapter]
 }

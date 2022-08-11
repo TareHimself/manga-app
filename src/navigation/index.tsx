@@ -18,17 +18,21 @@ import ReadMangaModalScreen from '../screens/ReadMangaModalScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import { RootSiblingParent } from 'react-native-root-siblings';
-
+import { Provider } from 'react-redux';
+import { store } from '../redux/store';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
 
   return (
-    <NavigationContainer
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-    >
-      <RootSiblingParent>
-        <RootNavigator />
-      </RootSiblingParent>
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer
+        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+      >
+        <RootSiblingParent>
+          <RootNavigator />
+        </RootSiblingParent>
+      </NavigationContainer>
+    </Provider>
+
 
   );
 }

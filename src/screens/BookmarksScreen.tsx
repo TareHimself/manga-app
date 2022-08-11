@@ -15,7 +15,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export default function BookmarksScreen({ navigation, route }: BaseStackScreenProps<'Root'>) {
 
   const { width, height } = useWindowDimensions();
-
   const { bookmarks } = useBookmarks();
   const [query, setQuery] = useState('');
 

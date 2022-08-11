@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Image, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
 import { SafeAreaView, Text, View, ScrollView } from '../components/Themed';
 import useMangaDexChapters from '../hooks/useMangaChapters';
@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
 import usePersistence from '../hooks/usePersistence';
+import { useAppSelector } from '../redux/hooks';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
@@ -72,11 +73,14 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const bIsBookmarked = IsBookmarked(mangaPreview.id);
 
-  const { addCallback } = usePersistence('mangaSource');
-
+  const lastSource = useRef(useAppSelector(state => state.source.source.id));
+  const currentSource = useAppSelector(state => state.source.source.id);
   useEffect(() => {
-    addCallback('change', () => { navigation.navigate('Root') })
-  }, []);
+    if (lastSource.current !== currentSource) {
+      lastSource.current = currentSource;
+      navigation.pop();
+    }
+  }, [currentSource]);
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>

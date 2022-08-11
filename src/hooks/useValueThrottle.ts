@@ -6,9 +6,9 @@ export function useValueThrottle<T>(delay: number, onValueCommited: (value: T) =
     const timeoutHandle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const latestValue = useRef<T>(initialValue);
 
-    function commitValue() {
+    const commitValue = useCallback(() => {
         onValueCommited(latestValue.current);
-    }
+    }, [latestValue, onValueCommited])
 
     const setValue = useCallback((newValue: T) => {
         latestValue.current = newValue;
@@ -19,7 +19,7 @@ export function useValueThrottle<T>(delay: number, onValueCommited: (value: T) =
 
         timeoutHandle.current = setTimeout(commitValue, timeoutLength);
 
-    }, [timeoutHandle.current, latestValue.current]);
+    }, [timeoutHandle.current, latestValue, onValueCommited]);
 
 
     return setValue

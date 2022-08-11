@@ -6,39 +6,46 @@ import { useUniqueId } from "./useUniqueId";
 import { compareTwoStrings } from "string-similarity";
 import useSource from "./useSource";
 import MangaPreview from "../components/MangaPreview";
-export const DefaultMangaSearch = { "s": "" };
+import Toast from "react-native-root-toast";
+export const DefaultMangaSearch = '';
 
-export default function useMangaDexSearch(search: Record<string, string> = DefaultMangaSearch): [IMangaPreviewData[], (search: Record<string, string>) => Promise<void>] {
+export default function useMangaDexSearch(search: string = DefaultMangaSearch): [IMangaPreviewData[], (search?: string, bMadeByUser?: boolean) => Promise<void>] {
     const [results, setResults] = useState<IMangaPreviewData[]>([]);
     const uniqueId = useUniqueId();
     const lastRequestController = useRef<AbortController | null>();
 
     const { source } = useSource();
-    console.log(source.id)
-    const makeSearch = useCallback(async (search: Record<string, string> = DefaultMangaSearch) => {
+
+    const makeSearch = useCallback(async (search: string = DefaultMangaSearch, bMadeByUser: boolean = true) => {
         try {
 
-            const url = `http://144.172.75.61:8089/${source.id}/search?${new URLSearchParams({ ...search }).toString()}`;
+            const url = `http://144.172.75.61:8089/${source.id}/search?${new URLSearchParams({ s: search }).toString()}`;
 
-            console.log(url)
             if (lastRequestController.current) {
                 lastRequestController.current.abort();
                 lastRequestController.current = new AbortController();
             }
             else {
+                if (bMadeByUser) {
+                    Toast.show(`Loading`, {
+                        duration: Toast.durations.SHORT,
+                        position: -80
+                    });
+                }
                 lastRequestController.current = new AbortController();
             }
 
             if (lastRequestController.current) {
 
+
                 axios.get(url, {
                     signal: lastRequestController.current.signal
                 }).then((response) => {
                     const result: IMangaPreviewData[] = response.data;
-                    if (search['s'].toLowerCase().trim() && search['s'].toLowerCase().trim().length > 3) {
+                    if (search.toLowerCase().trim() && search.toLowerCase().trim().length > 3) {
                         result.sort((a, b) => {
-                            const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), search['s'].toLowerCase().trim());
-                            const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), search['s'].toLowerCase().trim());
+                            const aRelavance = compareTwoStrings(a.title.toLowerCase().trim(), search.toLowerCase().trim());
+                            const bRelavance = compareTwoStrings(b.title.toLowerCase().trim(), search.toLowerCase().trim());
 
                             if (aRelavance > bRelavance) return -1;
 
@@ -47,8 +54,13 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
                             return 0;
                         });
                     }
-                    console.log(result[0].cover)
                     setResults([...result]);
+                    if (bMadeByUser) {
+                        Toast.show(`Done`, {
+                            duration: Toast.durations.SHORT,
+                            position: -80
+                        });
+                    }
                 }).catch((error) => {
                 });
             }
@@ -71,10 +83,10 @@ export default function useMangaDexSearch(search: Record<string, string> = Defau
         }
     }, [])
 
-    useEffect(() => {
-        console.log('source changed', source.id)
-        makeSearch(search);
-    }, [source.id])
+    /*useEffect(() => {
+
+        makeSearch(search, false);
+    }, [source.id])*/
 
     return [results, makeSearch]
 } 

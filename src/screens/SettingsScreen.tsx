@@ -12,11 +12,13 @@ import useSource from '../hooks/useSource';
 import usePersistence from '../hooks/usePersistence';
 import { BookmarksPersistencePayload } from '../hooks/useBookmarks';
 import Toast from 'react-native-root-toast';
+import { useAppDispatch } from '../redux/hooks';
+import { resetBookmarksInit } from '../redux/slices/bookmarksSlice';
 
 export default function SettingsScreen({ navigation }: RootTabScreenProps<'Settings'>) {
-  const { source, getSources, setSource, getSourceIndex } = useSource();
+  const { source, nextSource } = useSource();
 
-  const { sendEvent } = usePersistence<BookmarksPersistencePayload>('bookmarks');
+  const dispatch = useAppDispatch();
 
   const savePath = `${FileSystem.documentDirectory!}${source.id}_bookmarks.dat`;
 
@@ -28,6 +30,7 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
       } catch (error: any) {
         Toast.show(error.message, {
           duration: Toast.durations.LONG,
+          position: -80
         });
       }
     }
@@ -41,6 +44,7 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
       } catch (error: any) {
         Toast.show(error.message, {
           duration: Toast.durations.LONG,
+          position: -80
         });
       }
     }
@@ -56,10 +60,11 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
           if (JSON.parse(fileReadIn).s !== source.id) { throw new Error('The bookmarks file is from a different source') }
 
           await FileSystem.writeAsStringAsync(savePath, fileReadIn, { encoding: 'utf8' })
-          sendEvent('change', { op: 'refresh' });
+          dispatch(resetBookmarksInit());
         } catch (error: any) {
           Toast.show(error.message, {
             duration: Toast.durations.LONG,
+            position: -80
           });
         }
       }
@@ -72,24 +77,16 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
       const tmp = await FileSystem.getInfoAsync(savePath);
       if (tmp.exists) {
         await FileSystem.deleteAsync(savePath);
-        sendEvent('change', { op: 'refresh' });
+        dispatch(resetBookmarksInit());
       }
 
     }
   }, [savePath]);
 
   const changeSource = useCallback(async () => {
-    const sources = await getSources();
-    const index = await getSourceIndex(source.id);
-    const newIndex = index >= sources.length - 1 ? 0 : index + 1;
-
-    console.log('change info | ', sources[index], sources[index + 1])
-    setSource(sources[newIndex]);
-
-    Toast.show(`Source Changed To ${sources[newIndex].name}`, {
-      duration: Toast.durations.LONG,
-    });
-  }, [source.id, getSources]);
+    nextSource();
+    dispatch(resetBookmarksInit());
+  }, [source.id]);
 
   return (
     <SafeAreaView level={'level0'} style={{ height: '100%' }}>

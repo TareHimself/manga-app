@@ -9,16 +9,16 @@ import MangaPreview from "../components/MangaPreview";
 import Toast from "react-native-root-toast";
 export const DefaultMangaSearch = '';
 
-export default function useMangaDexSearch(search: string = DefaultMangaSearch): [IMangaPreviewData[], (search?: string, bMadeByUser?: boolean) => Promise<void>] {
+export default function useMangaDexSearch(search: string = DefaultMangaSearch, onSearchCompleted?: (results: IMangaPreviewData[]) => void): [IMangaPreviewData[], (search?: string) => Promise<void>] {
     const [results, setResults] = useState<IMangaPreviewData[]>([]);
     const uniqueId = useUniqueId();
     const lastRequestController = useRef<AbortController | null>();
 
     const { source } = useSource();
 
-    const makeSearch = useCallback(async (search: string = DefaultMangaSearch, bMadeByUser: boolean = true) => {
+    const makeSearch = useCallback(async (search: string = DefaultMangaSearch) => {
         try {
-
+            console.log(search)
             const url = `http://144.172.75.61:8089/${source.id}/search?${new URLSearchParams({ s: search }).toString()}`;
 
             if (lastRequestController.current) {
@@ -26,12 +26,6 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch): 
                 lastRequestController.current = new AbortController();
             }
             else {
-                if (bMadeByUser) {
-                    Toast.show(`Loading`, {
-                        duration: Toast.durations.SHORT,
-                        position: -80
-                    });
-                }
                 lastRequestController.current = new AbortController();
             }
 
@@ -55,12 +49,7 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch): 
                         });
                     }
                     setResults([...result]);
-                    if (bMadeByUser) {
-                        Toast.show(`Done`, {
-                            duration: Toast.durations.SHORT,
-                            position: -80
-                        });
-                    }
+                    if (onSearchCompleted) onSearchCompleted(result);
                 }).catch((error) => {
                 });
             }
@@ -82,11 +71,6 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch): 
 
         }
     }, [])
-
-    /*useEffect(() => {
-
-        makeSearch(search, false);
-    }, [source.id])*/
 
     return [results, makeSearch]
 } 

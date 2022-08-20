@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import MangaPreview from '../components/MangaPreview';
-import { Text, View, SafeAreaView } from '../components/Themed';
+import { View, SafeAreaView } from '../components/Themed';
 import useMangaDexSearch, { DefaultMangaSearch } from '../hooks/useMangaSearch';
-import { useValueThrottle } from '../hooks/useValueThrottle';
-import { useAppSelector } from '../redux/hooks';
+import useSourceChange from '../hooks/useSourceChange';
+import useThrottle from '../hooks/useThrottle';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,55 +17,52 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
   const scale = width / 400;
 
   const [itemWidth, setItemWidth] = useState(200)
+
   if (width < itemWidth * 2) {
     setItemWidth(width / 2);
   }
 
+  const [isSearching, setIsSearching] = useState(false);
 
   const rows = Math.max(Math.floor(width / itemWidth), 1);
 
   const columns = Math.max(Math.floor(height / itemWidth * 0.65), 1) + 2;
 
-  const initiaLimit = useRef(rows * columns);
+  const latestSearch = useRef('');
 
-  const defaultSearch = DefaultMangaSearch;
+  const onSearchCompleted = useCallback(() => {
+    setIsSearching(false);
+  }, [isSearching, setIsSearching])
 
-  const latestSearch = useRef(defaultSearch);
+  const [results, makeSearch] = useMangaDexSearch(latestSearch.current, onSearchCompleted);
 
-  const [results, makeSearch] = useMangaDexSearch(latestSearch.current);
-
-  const [isRefreshing, SetIsRefreshing] = useState(false);
-
-  function onSearchCommited(search: string) {
+  const onSearchCommited = useCallback((search: string) => {
     latestSearch.current = search;
     makeSearch(latestSearch.current)
-  }
+    setIsSearching(true)
+  }, [latestSearch, makeSearch]);
 
-  const updateSearch = useValueThrottle<string>(500, onSearchCommited, '');
+  const updateSearch = useThrottle<string>(500, onSearchCommited, '');
 
-  async function onReloadResults() {
-
-    SetIsRefreshing(true);
-    await makeSearch(latestSearch.current);
-    SetIsRefreshing(false);
-  }
+  const onRefresh = useCallback(() => {
+    setIsSearching(true);
+    makeSearch(latestSearch.current);
+  }, [makeSearch, setIsSearching]);
 
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
-  }, [])
+  }, [navigation])
 
   const textInputRef = useRef<TextInput | null>()
-  const lastSource = useRef(useAppSelector(state => state.source.source.id));
-  const currentSource = useAppSelector(state => state.source.source.id);
-  useEffect(() => {
-    if (lastSource.current !== currentSource) {
-      lastSource.current = currentSource;
-      if (textInputRef.current) {
-        textInputRef.current.clear();
-        makeSearch('', false)
-      }
+
+
+  const onSourceChanged = useCallback(() => {
+    if (textInputRef.current) {
+      textInputRef.current.clear();
+      onSearchCommited('');
     }
-  }, [currentSource, makeSearch]);
+  }, [textInputRef, onSearchCommited])
+  useSourceChange(onSourceChanged)
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
@@ -80,10 +77,10 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
         key={rows + itemWidth}
         numColumns={rows}
         columnWrapperStyle={{ ...styles.items_x, width: rows * itemWidth }}
-        data={results}
+        data={isSearching ? [] : results}
         renderItem={({ item, index }) => <MangaPreview data={item} key={item.id + item.cover + item.title} navigate={navigate} width={itemWidth} />}
-        onRefresh={onReloadResults}
-        refreshing={isRefreshing}
+        onRefresh={onRefresh}
+        refreshing={isSearching}
         onEndReachedThreshold={0.6}
       />
     </SafeAreaView>

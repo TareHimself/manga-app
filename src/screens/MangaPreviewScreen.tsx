@@ -12,6 +12,7 @@ import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
 import usePersistence from '../hooks/usePersistence';
 import { useAppSelector } from '../redux/hooks';
+import useSourceChange from '../hooks/useSourceChange';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
@@ -58,7 +59,9 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const bIsTablet = isTablet();
 
-  const manga = useManga(mangaPreview.id) || { ...mangaPreview, description: 'loading', status: 'loading', tags: [] };
+  const mangaFromApi = useManga(mangaPreview.id);
+
+  const manga = mangaFromApi || { ...mangaPreview, description: 'loading', status: 'loading', tags: [] };
 
   const { title, cover, description, status, id } = manga;
 
@@ -70,17 +73,15 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
-
   const bIsBookmarked = IsBookmarked(manga.id);
 
-  const lastSource = useRef(useAppSelector(state => state.source.source.id));
-  const currentSource = useAppSelector(state => state.source.source.id);
-  useEffect(() => {
-    if (lastSource.current !== currentSource) {
-      lastSource.current = currentSource;
-      navigation.pop();
-    }
-  }, [currentSource]);
+  console.log(manga.id, IsBookmarked(manga.id))
+
+  const onSourceChanged = useCallback(() => {
+    navigation.pop();
+  }, [navigation]);
+
+  useSourceChange(onSourceChanged)
 
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
@@ -91,7 +92,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
         }}>
           <Ionicons name="ios-chevron-back-circle-outline" size={30} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {
+        {mangaFromApi && <TouchableOpacity onPress={() => {
           if (bIsBookmarked) {
             removeBookmark(mangaPreview.id);
           }
@@ -101,7 +102,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
         }}>
           {bIsBookmarked ? <Ionicons name="bookmark" size={30} color="white" /> : <Ionicons name="bookmark-outline" size={30} color="white" />}
 
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </View>
       <View style={[styles.standardContainer, { flexDirection: 'row' }]} level={'level1'}>
         <View style={styles.imageContainer}>

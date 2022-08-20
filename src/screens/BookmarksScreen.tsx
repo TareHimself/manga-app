@@ -5,7 +5,7 @@ import { compareTwoStrings } from 'string-similarity';
 import MangaPreview from '../components/MangaPreview';
 import { View, SafeAreaView } from '../components/Themed';
 import useBookmarks from '../hooks/useBookmarks';
-import { useValueThrottle } from '../hooks/useValueThrottle';
+import useThrottle from '../hooks/useThrottle';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';
 
 type SearchFilterProps = { onSearchChanged?: (search: string) => void; }
@@ -30,17 +30,11 @@ export default function BookmarksScreen({ navigation, route }: BaseStackScreenPr
 
   const [isRefreshing, SetIsRefreshing] = useState(false);
 
-  function onSearchCommited(search: string) {
+  const onSearchCommited = useCallback((search: string) => {
     setQuery(search);
-  }
+  }, [setQuery]);
 
-  const updateSearch = useValueThrottle<string>(150, onSearchCommited, '');
-
-  async function onReloadResults() {
-    SetIsRefreshing(true);
-
-    SetIsRefreshing(false);
-  }
+  const updateSearch = useThrottle<string>(150, onSearchCommited, '');
 
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
@@ -71,18 +65,13 @@ export default function BookmarksScreen({ navigation, route }: BaseStackScreenPr
         <TextInput style={styles.searchBar} onChangeText={updateSearch} placeholder={`Search Your Bookmarks`} placeholderTextColor={'white'} />
       </View>
       <FlatList
-
         style={{ ...styles.items_y, width: rows * itemWidth }}
         key={rows + itemWidth}
         numColumns={rows}
         columnWrapperStyle={{ ...styles.items_x, width: rows * itemWidth }}
         data={filteredBookmarks}
         renderItem={({ item, index }) => <MangaPreview data={item} key={item.id + item.cover + item.title} navigate={navigate} width={itemWidth} />}
-        onRefresh={onReloadResults}
-        refreshing={isRefreshing}
-
         onEndReachedThreshold={0.6}
-
       />
     </SafeAreaView>
   );

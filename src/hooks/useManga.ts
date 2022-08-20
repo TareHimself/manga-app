@@ -21,8 +21,6 @@ export default function useManga(id: string): IMangaData | null {
     }, [source]);
 
     useEffect(() => {
-
-
         fetchChapters();
     }, [])
 

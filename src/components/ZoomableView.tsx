@@ -19,6 +19,8 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
     scrollBarBottomMarginAnimated: Animated.Value;
     scrollBarTopOffsetAnimated: Animated.Value;
     scrollBarOpacityAnimated: Animated.Value;
+    scaleTransformY: Animated.Value;
+    scaleTransformX: Animated.Value;
     fadeScrollBarAnimation: Animated.CompositeAnimation;
     scrollBarVisibilityTimeout: null | ReturnType<typeof setTimeout>;
     lastPanEventTime: number;
@@ -43,6 +45,10 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
     overlayViewLayout: ReactNative.LayoutRectangle;
     animatedZoomListener: null | string;
     dimensionsSubscription: null | ReactNative.EmitterSubscription;
+    subViewRatio: number;
+    previousZoom: number;
+    currentZoomPivot: Vector2;
+    lastPinchDistance: number;
 
     constructor(props: ZoomableViewProps) {
         super(props);
@@ -51,7 +57,6 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
         this.scrollSpeed = props.scrollSpeed || 20;
         this.touchTimeout = props.touchMsTimeout || 100;
         this.scrollDampening = 100;
-
         this.hasStartedNewZoomCapture = true;
         this.handlers = { scrollX: new Animated.Value(0), scrollY: new Animated.Value(0), zoom: new Animated.Value(this.zoomMin) }
         this.widthAnimated = new Animated.Value(0);
@@ -109,6 +114,14 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
         this.animatedZoomListener = null
 
         this.panResponder = this.createResponder();
+
+        this.subViewRatio = .5;
+
+        this.scaleTransformY = new Animated.Value(0);
+        this.scaleTransformX = new Animated.Value(0);
+        this.previousZoom = 1;
+        this.currentZoomPivot = { x: -1, y: -1 }
+        this.lastPinchDistance = 0;
     }
 
     onScrollStart(event: ReactNative.GestureResponderEvent) {
@@ -135,60 +148,48 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
 
         const currentZoom: number = (this.handlers.zoom as any)._value;
 
-        let scrollDeltaX = (gesture.vx * (this.scrollSpeed / currentZoom))
-        let scrollDeltaY = (gesture.vy * (this.scrollSpeed / currentZoom))
+        let scrollDeltaX = 0;//(gesture.vx * (this.scrollSpeed / currentZoom))
+        let scrollDeltaY = 0;//(gesture.vy * (this.scrollSpeed / currentZoom))
 
         let currentX: number = (this.handlers.scrollX as any)._value;
         let currentY: number = (this.handlers.scrollY as any)._value;
 
-        if (isZoom && false) {
+
+        if (isZoom) {
             const finger1Screen = { x: event.nativeEvent.changedTouches[0].pageX, y: event.nativeEvent.changedTouches[0].pageY }
             const finger2Screen = { x: event.nativeEvent.changedTouches[1].pageX, y: event.nativeEvent.changedTouches[1].pageY }
+            if (this.currentZoomPivot.x === -1) {
+                const midpointScreenX = (this.mainViewLayout.width / 2);
+                const midpointScreenY = (this.mainViewLayout.height / 2);
 
-            const finger1Element = { x: event.nativeEvent.changedTouches[0].locationX, y: event.nativeEvent.changedTouches[0].locationY }
-            const finger2Element = { x: event.nativeEvent.changedTouches[1].locationX, y: event.nativeEvent.changedTouches[1].locationY }
+                const currentYUnscaled = Math.abs(currentY) / currentZoom;
 
-            //{ x: (finger1Element.x + finger2Element.x) / 2, y: (finger1Element.y + finger2Element.y) / 2 }
+                const currentXUnscaled = Math.abs(currentX) / currentZoom;
+                console.log(currentXUnscaled, currentYUnscaled)
 
-
-            if (this.hasStartedNewZoomCapture) {
-
-                const screenMidpointX = (this.state.windowWidth / 2);
-                const screenMidpointY = (this.state.windowHeight / 2);
-
-                this.initialMidpoint = { x: screenMidpointX + Math.abs(currentX), y: screenMidpointY + Math.abs(currentY) };
-                this.initialPivotDistance = { x: screenMidpointX + Math.abs(currentX), y: screenMidpointY + Math.abs(currentY) }
-                this.midpointDelta = this.initialMidpoint;
-                this.zoomBeforeScaleStart = currentZoom;
-                this.zoomDistanceLastMove = distanceBetween2Points(finger1Screen, finger2Screen);
-                this.hasStartedNewZoomCapture = false;
+                this.lastPinchDistance = distanceBetween2Points(finger1Screen, finger2Screen);
+                this.currentZoomPivot = {
+                    x: midpointScreenX, y: midpointScreenY
+                }//{ x: (this.mainViewLayout.width / 2), y: (this.mainViewLayout.height / 2) }
             }
 
+            //{ x: ((finger1Screen.x + finger2Screen.x) / 2) + (Math.abs(currentX) / currentZoom), y: ((finger1Screen.y + finger2Screen.y) / 2) + (Math.abs(currentY) / currentZoom) }
+            //{ x: this.mainViewLayout.width / 2, y: this.mainViewLayout.height / 2 }
+            const distanceDelta = distanceBetween2Points(finger1Screen, finger2Screen) - this.lastPinchDistance;
 
 
-            const distanceDelta = (distanceBetween2Points(finger1Screen, finger2Screen) - this.zoomDistanceLastMove);
+            const newZoom = clamp(currentZoom + (distanceDelta / 100), this.zoomMin, 3);
 
-            this.zoomDistanceLastMove = distanceBetween2Points(finger1Screen, finger2Screen);
+            scrollDeltaX = (this.currentZoomPivot.x * currentZoom) - (this.currentZoomPivot.x * newZoom);
 
-            const newZoom = clamp(currentZoom + (distanceDelta / 100), this.zoomMin, this.zoomMax);
+            scrollDeltaY = (this.currentZoomPivot.y * currentZoom) - (this.currentZoomPivot.y * newZoom);
 
-            this.handlers.zoom.setValue(newZoom);
-
-            const scaleDelta = newZoom - this.zoomBeforeScaleStart;
-
-            const newMidpoint = { x: (this.initialMidpoint.x * scaleDelta), y: (this.initialMidpoint.y * scaleDelta) }
-
-            const scrollOffsetX = (this.initialPivotDistance.x - (this.initialPivotDistance.x * scaleDelta));
-
-            const scrollOffsetY = (this.initialPivotDistance.y - (this.initialPivotDistance.y * scaleDelta));
-
-            scrollDeltaX = scrollOffsetX - this.lastPivotDelta.x;
-            scrollDeltaY = scrollOffsetY - this.lastPivotDelta.y;
-
-            this.lastPivotDelta = { x: scrollOffsetX, y: scrollOffsetY }
-
+            this.handlers.zoom.setValue(newZoom)
+            this.lastPinchDistance = distanceBetween2Points(finger1Screen, finger2Screen);
         }
-
+        else {
+            this.currentZoomPivot = { x: -1, y: -1 }
+        }
 
         this.applyScrollDelta(scrollDeltaX, scrollDeltaY);
         this.computeScrollBarProperties();
@@ -241,11 +242,12 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
         const newPositionX = (this.handlers.scrollX as any)._value + dx;
         const newPositionY = (this.handlers.scrollY as any)._value + dy;
 
-        const xSpaceAvailable = Math.min(this.state.windowWidth - this.subViewLayout.width, 0);
-        const ySpaceAvailable = Math.min(this.mainViewLayout.height - this.subViewLayout.height, 0);
-
-        this.handlers.scrollX.setValue(clamp(newPositionX, xSpaceAvailable, 0));
-        this.handlers.scrollY.setValue(clamp(newPositionY, ySpaceAvailable, 0));
+        const subViewWidth = this.mainViewLayout.width * (this.handlers.zoom as any)._value;
+        const subViewHeight = subViewWidth * this.subViewRatio;
+        const xSpaceAvailable = Math.max(subViewWidth - this.mainViewLayout.width, 0);
+        const ySpaceAvailable = Math.max(subViewHeight - this.mainViewLayout.height, 0);
+        this.handlers.scrollX.setValue(clamp(newPositionX, xSpaceAvailable * -1, 0));
+        this.handlers.scrollY.setValue(clamp(newPositionY, ySpaceAvailable * -1, 0));
     }
 
     onScrollAnimated() {
@@ -320,7 +322,6 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
     onMainViewLayoutUpdated(event: ReactNative.LayoutChangeEvent) {
         this.mainViewLayout = event.nativeEvent.layout;
         this.widthAnimated.setValue((this.handlers.zoom as any)._value * this.mainViewLayout.width)
-
     }
 
     onSubViewLayoutUpdated(event: ReactNative.LayoutChangeEvent) {
@@ -329,12 +330,18 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
             this.overlayBottomMarginAnimated.setValue(event.nativeEvent.layout.height * -1);
         }
         this.subViewLayout = event.nativeEvent.layout;
-
+        this.subViewRatio = event.nativeEvent.layout.height / event.nativeEvent.layout.width;
         this.computeScrollBarProperties();
     }
 
     onZoomChanged(state: { value: number }) {
-        //this.widthAnimated.setValue(state.value * this.mainViewLayout.width)
+        const originalWidth = this.mainViewLayout.width * this.zoomMin;
+        const originalHeight = originalWidth * this.subViewRatio;
+
+        const currentWidth = this.mainViewLayout.width * state.value;
+        const currentHeight = currentWidth * this.subViewRatio;
+        this.scaleTransformY.setValue(((currentHeight / 2) - (originalHeight / 2)) / state.value);
+        this.scaleTransformX.setValue(((currentWidth / 2) - (originalWidth / 2)) / state.value);
     }
 
     componentDidMount() {
@@ -346,7 +353,7 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
             }));
         });
 
-        this.animatedZoomListener = this.handlers.zoom.addListener(this.onZoomChanged);
+        this.animatedZoomListener = this.handlers.zoom.addListener(this.onZoomChanged.bind(this));
 
     }
 
@@ -383,9 +390,8 @@ export default class ZoomableView extends React.Component<ZoomableViewProps, Zoo
                     onLayout={this.onMainViewLayoutUpdated.bind(this)}
                 >
 
-
                     <Animated.View
-                        style={{ width: this.widthAnimated, maxWidth: this.widthAnimated, marginTop: this.handlers.scrollY }}
+                        style={{ width: this.widthAnimated, maxWidth: this.widthAnimated, marginTop: this.handlers.scrollY, marginLeft: this.handlers.scrollX, transform: [{ scale: this.handlers.zoom }, { translateY: this.scaleTransformY }, { translateX: this.scaleTransformX }] }}
                         onLayout={this.onSubViewLayoutUpdated.bind(this)}
                     >
 

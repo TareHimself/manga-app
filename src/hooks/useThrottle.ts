@@ -1,14 +1,14 @@
 import { useCallback, useRef } from "react";
 
-export function useValueThrottle<T>(delay: number, onValueCommited: (value: T) => void, initialValue: T) {
+export default function useThrottle<T>(delay: number, onCommited: (value: T) => void, initial: T) {
 
     const timeoutLength = useRef(delay).current;
     const timeoutHandle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const latestValue = useRef<T>(initialValue);
+    const latestValue = useRef<T>(initial);
 
     const commitValue = useCallback(() => {
-        onValueCommited(latestValue.current);
-    }, [latestValue, onValueCommited])
+        onCommited(latestValue.current);
+    }, [latestValue, onCommited])
 
     const setValue = useCallback((newValue: T) => {
         latestValue.current = newValue;
@@ -19,7 +19,7 @@ export function useValueThrottle<T>(delay: number, onValueCommited: (value: T) =
 
         timeoutHandle.current = setTimeout(commitValue, timeoutLength);
 
-    }, [timeoutHandle.current, latestValue, onValueCommited]);
+    }, [timeoutHandle.current, latestValue, onCommited]);
 
 
     return setValue

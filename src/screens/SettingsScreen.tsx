@@ -36,20 +36,6 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
     }
   }, [savePath]);
 
-  const exportBookmarksOld = useCallback(async () => {
-    if (await Sharing.isAvailableAsync() && await SecureStore.isAvailableAsync()) {
-      try {
-        await FileSystem.writeAsStringAsync(savePath, await SecureStore.getItemAsync(`bookmarks`) || JSON.stringify({ d: [], v: Constants.manifest!.version }), { encoding: 'utf8' });
-        await Sharing.shareAsync(savePath);
-      } catch (error: any) {
-        Toast.show(error.message, {
-          duration: Toast.durations.LONG,
-          position: -80
-        });
-      }
-    }
-  }, [savePath]);
-
   const importBookmarks = useCallback(async () => {
     if (await SecureStore.isAvailableAsync()) {
       const file = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true })
@@ -70,7 +56,7 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
       }
     }
 
-  }, [savePath]);
+  }, [dispatch, savePath]);
 
   const deleteBookmarks = useCallback(async () => {
     if (await SecureStore.isAvailableAsync()) {
@@ -86,24 +72,25 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
   const changeSource = useCallback(async () => {
     nextSource();
     dispatch(resetBookmarksInit());
-  }, [source.id]);
+  }, [dispatch, source.id]);
 
   return (
     <SafeAreaView level={'level0'} style={{ height: '100%' }}>
       <ScrollView style={styles.standardContainer} level={'level1'}>
-
-        <TouchableOpacity style={styles.touchableStyle} onPress={exportBookmarksOld}><Text style={styles.text}>Export bookmarks (MD)</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={exportBookmarks}><Text style={styles.text}>Export bookmarks</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={importBookmarks}><Text style={styles.text}>Import bookmarks</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={deleteBookmarks}><Text style={styles.text}>Delete bookmarks</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={changeSource}><Text style={styles.text}>Change Source</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.touchableStyle}><Text style={styles.text}>Report a bug</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.touchableStyle}><Text style={styles.text}>Make a suggestion</Text></TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
 
   );
 }
+
+/*
+<TouchableOpacity style={styles.touchableStyle}><Text style={styles.text}>Report a bug</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.touchableStyle}><Text style={styles.text}>Make a suggestion</Text></TouchableOpacity>
+        */
 
 const styles = StyleSheet.create({
   standardContainer: {

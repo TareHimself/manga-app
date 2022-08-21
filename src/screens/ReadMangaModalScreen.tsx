@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ReactNative, { ImageURISource, Platform, StyleSheet, Image, Animated } from 'react-native';
-import AutoResizeImage from '../components/AutoResizeImage';
-import ZoomableView, { ZoomableViewHandlers } from '../components/ZoomableView';
-import { SafeAreaView } from '../components/Themed';
+import React, { useRef } from 'react';
+import { ImageURISource, StyleSheet, } from 'react-native';
+import { MangaReaderNavigation } from '../components/MangaReader';
+import { SafeAreaView, ScrollView } from '../components/Themed';
 import useMangaDexChapterCdn from '../hooks/useMangaChapterCdn';
 import { BaseStackScreenProps } from '../types';
-import { getDiagonalScreenSize } from '../utils';
 import { useCallback } from 'react';
 import { useWindowDimensions } from 'react-native';
 import useReadChapters from '../hooks/useReadChapters';
+import MangaReader from '../components/MangaReader';
+import Toast from 'react-native-root-toast';
 
 export default function ReadMangaModalScreen({ route, navigation }: BaseStackScreenProps<'ReadMangaModal'>) {
 
@@ -22,10 +22,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
 
 
 
-  const onReaderTouched = useCallback((e: ReactNative.GestureResponderEvent, gestureState: ReactNative.PanResponderGestureState, handlers: ZoomableViewHandlers) => {
-    const position = Math.ceil((gestureState.x0 - 0) / (width) * (3 - 0)); // result is 1-3 i.e. the part of the screen
-    switch (position) {
-      case 1:
+  const onReaderNavigate = useCallback((op: MangaReaderNavigation) => {
+
+    switch (op) {
+      case 'previous':
         // go to previous chapter
         if (currentChapterIndex.current + 1 < chapters.length) {
           currentChapterIndex.current += 1;
@@ -34,32 +34,18 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
           if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
             addReadChapter(chapters[currentChapterIndex.current].id);
           }
-
-          Animated.timing(handlers.scrollY, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
-
-          Animated.timing(handlers.scrollX, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
-
-          Animated.timing(handlers.zoom, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
+          Toast.show('Loading Previous Chapter', {
+            duration: Toast.durations.SHORT,
+            position: -80
+          });
         }
         break;
-      case 2:
+      case 'info':
         console.log('show ui here')
         navigation.navigate('MangaPreview', { manga: manga });
         break;
 
-      case 3:
+      case 'next':
         // go to next chapter
         if (currentChapterIndex.current !== 0) {
           currentChapterIndex.current -= 1;
@@ -68,24 +54,17 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
           if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
             addReadChapter(chapters[currentChapterIndex.current].id);
           }
-
-          Animated.timing(handlers.scrollY, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
-
-          Animated.timing(handlers.scrollX, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
-
-          Animated.timing(handlers.zoom, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: false
-          }).start();
+          Toast.show('Loading Next Chapter', {
+            duration: Toast.durations.SHORT,
+            position: -80
+          });
+        }
+        else {
+          Toast.show('No More Chapters', {
+            duration: Toast.durations.SHORT,
+            position: -80
+          });
+          navigation.navigate('MangaPreview', { manga: manga });
         }
 
         break;
@@ -94,22 +73,26 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
 
   const images: ImageURISource[] = loadedChapter?.map((c) => { return { uri: c } }) || [];
 
-  const imageElements = isLoadingChapter ? null : images.map(image => <AutoResizeImage source={image} key={image.uri || ''} style={styles.images} />);
-
   return (
     <SafeAreaView style={styles.container}>
-      <ZoomableView
+      <MangaReader onNavigate={onReaderNavigate} images={loadedChapter || []} />
+    </SafeAreaView>
+  );
+}
+
+/*
+
+<ZoomableView
         style={styles.imageViewer}
         scrollSpeed={(getDiagonalScreenSize() / 6.16) * 20}
         zoomMin={1}
         zoomMax={4}
         onTouched={onReaderTouched}
       >
-        {imageElements}
+        
       </ZoomableView>
-    </SafeAreaView>
-  );
-}
+
+      */
 
 const styles = StyleSheet.create({
   container: {

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
+import WebView from 'react-native-webview';
 import MangaPreview from '../components/MangaPreview';
 import { View, SafeAreaView } from '../components/Themed';
 import useMangaDexSearch, { DefaultMangaSearch } from '../hooks/useMangaSearch';

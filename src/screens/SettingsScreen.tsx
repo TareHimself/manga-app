@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView, ScrollView, Text, View } from '../components/Themed';
 import { RootTabScreenProps } from '../types';
@@ -12,15 +12,21 @@ import useSource from '../hooks/useSource';
 import usePersistence from '../hooks/usePersistence';
 import { BookmarksPersistencePayload } from '../hooks/useBookmarks';
 import Toast from 'react-native-root-toast';
-import { useAppDispatch } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { resetBookmarksInit } from '../redux/slices/bookmarksSlice';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { setSource, setSourceByIndex } from '../redux/slices/sourceSlice';
 
 export default function SettingsScreen({ navigation }: RootTabScreenProps<'Settings'>) {
   const { source, nextSource } = useSource();
 
+  const sources = useAppSelector((state) => state.source.sources);
+
   const dispatch = useAppDispatch();
 
   const savePath = `${FileSystem.documentDirectory!}${source.id}_bookmarks.dat`;
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
 
   const exportBookmarks = useCallback(async () => {
@@ -69,18 +75,26 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
     }
   }, [savePath]);
 
-  const changeSource = useCallback(async () => {
-    nextSource();
-    dispatch(resetBookmarksInit());
-  }, [dispatch, source.id]);
-
   return (
     <SafeAreaView level={'level0'} style={{ height: '100%' }}>
       <ScrollView style={styles.standardContainer} level={'level1'}>
         <TouchableOpacity style={styles.touchableStyle} onPress={exportBookmarks}><Text style={styles.text}>Export bookmarks</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={importBookmarks}><Text style={styles.text}>Import bookmarks</Text></TouchableOpacity>
         <TouchableOpacity style={styles.touchableStyle} onPress={deleteBookmarks}><Text style={styles.text}>Delete bookmarks</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.touchableStyle} onPress={changeSource}><Text style={styles.text}>Change Source</Text></TouchableOpacity>
+        <DropDownPicker
+          style={styles.touchableStyle}
+          listItemLabelStyle={styles.text}
+          textStyle={styles.text}
+          open={dropdownOpen}
+          value={source.id}
+          items={sources.map(s => ({ label: s.name, value: s.id }))}
+          setOpen={setDropdownOpen}
+          setValue={(s) => { dispatch(setSource(s(source))); dispatch(resetBookmarksInit()); }}
+          setItems={() => { }}
+          theme="DARK"
+          multiple={false}
+          mode="SIMPLE"
+          listMode='SCROLLVIEW' />
       </ScrollView>
     </SafeAreaView>
 
@@ -108,11 +122,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#3b3b3b',
     borderRadius: 15,
-    marginVertical: 5
+    marginVertical: 5,
+    borderColor: '',
+    borderWidth: 0,
   },
   text: {
     fontSize: 15,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: 'white',
   },
   linkText: {
     fontSize: 14,

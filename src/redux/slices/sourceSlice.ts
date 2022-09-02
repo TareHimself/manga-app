@@ -80,6 +80,9 @@ export const sourceSlice = createSlice({
 				duration: Toast.durations.SHORT,
 				position: -80
 			});
+		},
+		setSource: (state, action: PayloadAction<string>) => {
+			state.source = state.sources.find(s => s.id === action.payload) || state.sources[0];
 		}
 	},
 	extraReducers: (builder) => {
@@ -91,7 +94,7 @@ export const sourceSlice = createSlice({
 	}
 })
 
-export const { incrementSource, setSourceByIndex } = sourceSlice.actions
+export const { incrementSource, setSourceByIndex, setSource } = sourceSlice.actions
 export { loadSource }
 
 export default sourceSlice.reducer

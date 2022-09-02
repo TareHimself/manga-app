@@ -17,8 +17,6 @@ import useSource from '../hooks/useSource';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
-  const t0 = performance.now()
-
   const { readChapters, hasReadChapter, addReadChapter } = useReadChapters(manga.id);
 
   const { source } = useSource();
@@ -38,9 +36,6 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
   }, []);
-
-  const t1 = performance.now()
-  console.log("Chapters Screen Took " + (t1 - t0) + " Milliseconds To Load.")
   /*
   */
   return (
@@ -60,7 +55,10 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
         chapter={item}
         key={item.id}
         readChapter={onReadChapter}
-        hasReadChapter={hasReadChapter(item.id)} />} />
+        hasReadChapter={hasReadChapter(item.id)}
+        bIsLast={index === chapters.length - 1}
+      />}
+    />
 
   )
 
@@ -252,7 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '95%',
     marginVertical: 10,
-    paddingVertical: 10,
+    paddingTop: 10,
     paddingHorizontal: 10,
     borderRadius: 15,
     marginLeft: '2.5%'

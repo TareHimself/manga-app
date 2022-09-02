@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import bookmarksSlice from './slices/bookmarksSlice'
+import chaptersSlice from './slices/chaptersSlice'
 import sourceSlice from './slices/sourceSlice'
 
 export const store = configureStore({
 	reducer: {
 		bookmarks: bookmarksSlice,
-		source: sourceSlice
+		source: sourceSlice,
+		chapters: chaptersSlice
 	},
 })
 

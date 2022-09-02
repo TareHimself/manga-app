@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ImageURISource, StyleSheet, } from 'react-native';
 import { MangaReaderNavigation } from '../components/MangaReader';
 import { SafeAreaView, ScrollView } from '../components/Themed';
@@ -15,21 +15,22 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
   const { manga, startChapter, chapters } = route.params;
 
   const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
-  const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id, startChapter.id)
   const currentChapterIndex = useRef(chapters.indexOf(startChapter));
+
+  const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id)
 
   const { width, height } = useWindowDimensions();
 
-
-
-  const onReaderNavigate = useCallback((op: MangaReaderNavigation) => {
+  const onReaderNavigate = useCallback(async (op: MangaReaderNavigation) => {
 
     switch (op) {
       case 'previous':
         // go to previous chapter
         if (currentChapterIndex.current + 1 < chapters.length) {
-          currentChapterIndex.current += 1;
-          fetchChapter(manga.id, chapters[currentChapterIndex.current].id)
+          currentChapterIndex.current++;;
+          if (!await fetchChapter(currentChapterIndex.current)) {
+            currentChapterIndex.current--;
+          }
 
           if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
             addReadChapter(chapters[currentChapterIndex.current].id);
@@ -48,8 +49,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
       case 'next':
         // go to next chapter
         if (currentChapterIndex.current !== 0) {
-          currentChapterIndex.current -= 1;
-          fetchChapter(manga.id, chapters[currentChapterIndex.current].id)
+          currentChapterIndex.current--;
+          if (!await fetchChapter(currentChapterIndex.current)) {
+            currentChapterIndex.current++;
+          }
 
           if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
             addReadChapter(chapters[currentChapterIndex.current].id);
@@ -70,6 +73,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
         break;
     }
   }, [loadedChapter, chapters, currentChapterIndex, manga, hasReadChapter, addReadChapter])
+
+  useEffect(() => {
+    fetchChapter(currentChapterIndex.current)
+  })
 
   const images: ImageURISource[] = loadedChapter?.map((c) => { return { uri: c } }) || [];
 

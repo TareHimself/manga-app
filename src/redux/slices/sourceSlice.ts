@@ -2,17 +2,11 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import Constants from "expo-constants"
 import * as FileSystem from 'expo-file-system';
-import { MangaSource } from '../../types'
+import { MangaSource, SourceState } from '../../types'
 import Toast from 'react-native-root-toast';
 import axios from 'axios';
 
 const DEFAULT_SOURCE: MangaSource = { id: 'mc', name: 'mangaclash' };
-// Define a type for the slice state
-interface SourceState {
-	sources: MangaSource[];
-	source: MangaSource;
-	init: boolean;
-}
 
 // Define the initial state using that type
 const initialState: SourceState = {
@@ -40,7 +34,7 @@ async function commitToStorage(id: string) {
 const loadSource = createAsyncThunk(
 	'source/loadSource',
 	async (sourceId: string, thunkAPI) => {
-		const response = await axios.get('http://144.172.75.61:8089/');
+		const response = await axios.get('http://10.200.4.16:8089/');
 		const sourcesFromApi: MangaSource[] = response.data || [];
 		let currentSource: MangaSource = sourcesFromApi[0] || DEFAULT_SOURCE;
 

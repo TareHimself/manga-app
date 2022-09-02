@@ -2,18 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import Constants from "expo-constants"
 import * as FileSystem from 'expo-file-system';
-import { IMangaPreviewData, MangaSource } from '../../types'
+import { BookmarksState, IMangaPreviewData, MangaSource } from '../../types'
 
 
 async function commitToStorage(sourceId: string, data: { [id: string]: IMangaPreviewData }) {
 	const savePath = `${FileSystem.documentDirectory!}${sourceId}_bookmarks.dat`;
 	await FileSystem.writeAsStringAsync(savePath, JSON.stringify({ s: sourceId, d: Object.values(data), v: Constants.manifest!.version }), { encoding: 'utf8' });
 
-}
-
-// Define a type for the slice state
-interface BookmarksState {
-	data: { [id: string]: IMangaPreviewData }; init: boolean
 }
 
 // Define the initial state using that type

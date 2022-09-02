@@ -1,21 +1,24 @@
 import { View, Dimensions } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { ViewProps } from './Themed';
 
 export type MangaReaderNavigation = 'info' | 'next' | 'previous';
-export default function MangaReader({ images, onNavigate, style }: ViewProps & { images: string[], onNavigate: (op: MangaReaderNavigation) => void; }) {
+export default function MangaReader({ images, onNavigate, style }: ViewProps & { images: string[], onNavigate: (op: MangaReaderNavigation) => Promise<void>; }) {
 
 	const [webviewHeight, setWebviewHeight] = useState(Dimensions.get('window').height)
 	const deviceWidth = Dimensions.get('window').width;
+	const isProcessing = useRef(false);
 
-	const onWebViewMessage = (event: WebViewMessageEvent) => {
+	const onWebViewMessage = async (event: WebViewMessageEvent) => {
 		const message: { op: string, data: string } = JSON.parse(event.nativeEvent.data);
 		if (message.op === 'height') {
 			//setWebviewHeight(Number(message.data));
 		}
-		else if (message.op === 'nav') {
-			onNavigate(message.data as MangaReaderNavigation);
+		else if (message.op === 'nav' && !isProcessing.current) {
+			isProcessing.current = true;
+			await onNavigate(message.data as MangaReaderNavigation);
+			isProcessing.current = false;
 		}
 
 	}

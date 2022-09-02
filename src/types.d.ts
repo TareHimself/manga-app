@@ -32,6 +32,12 @@ export interface IMangaChapter {
   title: string;
 }
 
+export interface IStoredMangaChapter {
+  id: string;
+  title: string;
+  downloadedPages: string[];
+}
+
 export interface IMangaData {
   id: string;
   title: string;
@@ -53,6 +59,22 @@ export type BaseStackParamList = {
   ReadMangaModal: { manga: IMangaData; chapters: IMangaChapter[]; startChapter: IMangaChapter; hasReadChapter: (chapterId: string) => boolean, addReadChapter: (chapterId: string) => Promise<void> };
 };
 
+
+export interface ChaptersState {
+  chapters: { [id: string]: IStoredMangaChapter[] };
+  loadedChapters: string[];
+  chaptersBeingDownloaded: string[],
+}
+
+export interface SourceState {
+  sources: MangaSource[];
+  source: MangaSource;
+  init: boolean;
+}
+
+export interface BookmarksState {
+  data: { [id: string]: IMangaPreviewData }; init: boolean
+}
 
 export type RootTabScreenProps<T extends keyof RootTabParamList> = NativeStackScreenProps<RootTabParamList, T>;
 

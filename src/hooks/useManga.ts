@@ -9,19 +9,21 @@ export default function useManga(id: string): IMangaData | null {
     const IsMounted = useMounted();
     const { source } = useSource();
 
-    const fetchChapters = useCallback(async () => {
-        const url = `http://144.172.75.61:8089/${source.id}/${id}/`
-        console.log(url)
-        const response: IMangaData | 'cancelled' = (await axios.get(url))?.data;
+    const fetchManga = useCallback(async () => {
+        try {
+            const url = `http://10.200.4.16:8089/${source.id}/${id}/`
+            const response: IMangaData | 'cancelled' = (await axios.get(url))?.data;
 
-        if (response !== 'cancelled' && IsMounted()) {
-            setManga(response)
+            if (response !== 'cancelled' && IsMounted()) {
+                setManga(response)
+            }
+        } catch (error) {
+
         }
-
     }, [source]);
 
     useEffect(() => {
-        fetchChapters();
+        fetchManga();
     }, [])
 
     return manga

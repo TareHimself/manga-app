@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Image, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
-import { SafeAreaView, Text, View, ScrollView } from '../components/Themed';
+import { SafeAreaView, Text, View, ScrollView, FlatList } from '../components/Themed';
 import useMangaDexChapters from '../hooks/useMangaChapters';
-import { BaseStackParamList, BaseStackScreenProps, IMangaChapter, IMangaData } from '../types';
+import { BaseStackParamList, BaseStackScreenProps, IMangaChapter, IMangaData, IStoredMangaChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';
 import useReadChapters from '../hooks/useReadChapters';
@@ -11,14 +11,21 @@ import { Ionicons } from '@expo/vector-icons';
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
 import usePersistence from '../hooks/usePersistence';
-import { useAppSelector } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import useSourceChange from '../hooks/useSourceChange';
+import useSource from '../hooks/useSource';
 
-function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
+function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
+
+  const t0 = performance.now()
 
   const { readChapters, hasReadChapter, addReadChapter } = useReadChapters(manga.id);
 
+  const { source } = useSource();
 
+  const dispatch = useAppDispatch();
+
+  const downloads = useAppSelector(state => state.chapters.chaptersBeingDownloaded)
 
   const onReadChapter = (chapter: IMangaChapter) => {
     if (manga) {
@@ -32,25 +39,48 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
     navigation.navigate(route, params)
   }, []);
 
+  const t1 = performance.now()
+  console.log("Chapters Screen Took " + (t1 - t0) + " Milliseconds To Load.")
   /*
-  <FlatList
+  */
+  return (
+    <FlatList
+      initialNumToRender={10}
       level={'level1'}
       style={[styles.scroll]}
       contentContainerStyle={{ alignItems: 'stretch' }}
-      key={readChapters.length}
+      key={null}
       data={chapters}
-      renderItem={({ item, index }) => <MangaChapterPreviewTouchable chapter={item} key={item} readChapter={onReadChapter} hasReadChapter={hasReadChapter(item)} />}
-      onEndReachedThreshold={0.6} />
-      */
-  return (
-    <ScrollView
+      renderItem={({ item, index }) => <MangaChapterPreviewTouchable
+        bIsDownloading={downloads.includes(source.id + manga.id + item.id)}
+        dispatch={dispatch}
+        sourceId={source.id}
+        mangaId={manga.id}
+        chapterIndex={index}
+        chapter={item}
+        key={item.id}
+        readChapter={onReadChapter}
+        hasReadChapter={hasReadChapter(item.id)} />} />
+
+  )
+
+  /*
+  <ScrollView
       level={'level1'}
       style={[styles.scroll]}
     >
-      {chapters.map((item) => <MangaChapterPreviewTouchable chapter={item} key={item.id} readChapter={onReadChapter} hasReadChapter={hasReadChapter(item.id)} />)}
+      {chapters.map((item, idx) => <MangaChapterPreviewTouchable
+        bIsDownloading={downloads.includes(source.id + manga.id + item.id)}
+        dispatch={dispatch}
+        sourceId={source.id}
+        mangaId={manga.id}
+        chapterIndex={idx}
+        chapter={item}
+        key={item.id}
+        readChapter={onReadChapter}
+        hasReadChapter={hasReadChapter(item.id)} />)}
     </ScrollView>
-
-  )
+    */
 }
 
 export default function MangaPreviewScreen({ navigation, route }: BaseStackScreenProps<'MangaPreview'>) {
@@ -74,8 +104,6 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
   const bIsBookmarked = IsBookmarked(manga.id);
-
-  console.log(manga.id, IsBookmarked(manga.id))
 
   const onSourceChanged = useCallback(() => {
     navigation.pop();

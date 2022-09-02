@@ -1,30 +1,23 @@
-import axios from "axios";
-import { useCallback, useEffect, useState, } from "react";
-import { IMangaChapter } from "../types";
+import { useEffect, } from "react";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { loadChapters } from "../redux/slices/chaptersSlice";
+import { IStoredMangaChapter } from "../types";
 import useMounted from "./useMounted";
 import useSource from "./useSource";
 
-export default function useMangaChapters(id: string): IMangaChapter[] {
-    const [chapters, setChapters] = useState<IMangaChapter[]>([]);
-    const IsMounted = useMounted();
+export default function useMangaChapters(id: string): IStoredMangaChapter[] {
+
+    const loadedChapters = useAppSelector((state) => state.chapters.chapters);
+    const dispatch = useAppDispatch();
 
     const { source } = useSource();
-
-    const fetchChapters = useCallback(async () => {
-
-        const url = `http://144.172.75.61:8089/${source.id}/${id}/chapters/`
-        const response: IMangaChapter[] | 'cancelled' = (await axios.get(url))?.data;
-        if (response !== 'cancelled' && IsMounted()) {
-            setChapters(response)
-        }
-
-    }, [source]);
 
     useEffect(() => {
 
 
-        fetchChapters();
+        dispatch(loadChapters(`${source.id}|${id}`))
+        console.log(id);
     }, [])
 
-    return chapters
+    return loadedChapters[source.id + id] || []
 }

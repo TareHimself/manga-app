@@ -59,7 +59,7 @@ const loadChapters = createAsyncThunk(
 		}
 
 		try {
-			const url = `http://10.200.4.16:8089/${source}/${manga}/chapters/`
+			const url = `http://144.172.75.61:8089/${source}/${manga}/chapters/`
 			const response: IMangaChapter[] | 'cancelled' = (await axios.get(url))?.data;
 
 			if (response !== 'cancelled' && response[0]?.id !== data[0]?.id) {
@@ -96,7 +96,7 @@ const downloadChapter = createAsyncThunk(
 
 		const chapter = chapters.chapters[sourceId + mangaId][chapterIndex];
 
-		const url = `http://10.200.4.16:8089/${sourceId}/${mangaId}/chapters/${chapter.id}`;
+		const url = `http://144.172.75.61:8089/${sourceId}/${mangaId}/chapters/${chapter.id}`;
 		const response: string[] | 'cancelled' = (await axios.get(url))?.data;
 		if (response !== 'cancelled') {
 			result = (await resolveAllPromises(response.map((res, idx) => { return downloadPageFromUrl(res, idx) }))).sort((a, b) => a[1] - b[1]).map(a => a[0]);

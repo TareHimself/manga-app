@@ -35,7 +35,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
             }
 
             try {
-                const url = `http://10.200.4.16:8089/${source.id}/${mangaId}/chapters/${targetChapter.id}`;
+                const url = `http://144.172.75.61:8089/${source.id}/${mangaId}/chapters/${targetChapter.id}`;
 
                 const response: string[] | 'cancelled' = (await axios.get(url)).data;
 

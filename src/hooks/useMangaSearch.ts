@@ -18,7 +18,7 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch, o
 
     const makeSearch = useCallback(async (search: string = DefaultMangaSearch) => {
         try {
-            const url = `http://10.200.4.16:8089/${source.id}/search?${new URLSearchParams({ s: search }).toString()}`;
+            const url = `http://144.172.75.61:8089/${source.id}/search?${new URLSearchParams({ s: search }).toString()}`;
 
             if (lastRequestController.current) {
                 lastRequestController.current.abort();

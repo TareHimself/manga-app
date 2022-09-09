@@ -1,10 +1,10 @@
 import { View, Text } from './Themed'
 import React from 'react'
 import { connect } from "react-redux";
-import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { IMangaChapter, IStoredMangaChapter } from '../types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { addPendingDownload, downloadChapter } from '../redux/slices/chaptersSlice';
+import { addPendingAction, deleteChapter, downloadChapter } from '../redux/slices/chaptersSlice';
 import { store } from '../redux/store';
 import NetInfo, { NetInfoSubscription } from '@react-native-community/netinfo';
 
@@ -14,11 +14,13 @@ export type MangaChapterTouchableState = { isOnline: boolean; }
 
 export default class MangaChapterTouchable extends React.Component<MangaChapterTouchableProps, MangaChapterTouchableState> {
     unsubFromNetInfo: null | NetInfoSubscription;
+    DownloadProgress: Animated.Value;
 
     constructor(props: MangaChapterTouchableProps) {
         super(props);
         this.state = { isOnline: true }
         this.unsubFromNetInfo = null;
+        this.DownloadProgress = new Animated.Value(1);
     }
 
     componentDidMount() {
@@ -38,18 +40,23 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
         }
     }
 
+    onDownloadProgress(progress: number) {
+        this.DownloadProgress.setValue(progress);
+    }
+
     onDownloadOrDeletePressed() {
         if (this.props.bIsDownloading) {
-            console.log('downloading')
         }
         else {
-            if (this.props.chapter.downloadedPages.length > 0) {
-                console.log('cant delete yet')
+            if (this.props.chapter.offline) {
+                this.props.dispatch(addPendingAction(this.props.sourceId + this.props.mangaId + this.props.chapter.id));
+                this.props.dispatch(deleteChapter({ sourceId: this.props.sourceId, mangaId: this.props.mangaId, chapterIndex: this.props.chapterIndex, chapter: this.props.chapter }))
+                this.DownloadProgress.setValue(1);
             }
             else {
-                console.log('downloading')
-                this.props.dispatch(addPendingDownload(this.props.sourceId + this.props.mangaId + this.props.chapter.id));
-                this.props.dispatch(downloadChapter({ sourceId: this.props.sourceId, mangaId: this.props.mangaId, chapterIndex: this.props.chapterIndex }))
+                this.DownloadProgress.setValue(0);
+                this.props.dispatch(addPendingAction(this.props.sourceId + this.props.mangaId + this.props.chapter.id));
+                this.props.dispatch(downloadChapter({ sourceId: this.props.sourceId, mangaId: this.props.mangaId, chapterIndex: this.props.chapterIndex, chapter: this.props.chapter, onProgress: this.onDownloadProgress.bind(this) }))
             }
         }
 
@@ -59,30 +66,30 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
         if (this.state.isOnline) {
             return (
                 <>
-                    <View style={styles.container} level={'level2'}>
+                    <View style={styles.container}>
+                        <Animated.View style={[styles.progressContainer, { width: this.DownloadProgress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }), marginRight: this.DownloadProgress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '-100%'] }) }]} />
                         <TouchableOpacity style={styles.readTouchable} onPress={() => { this.props.readChapter(this.props.chapter); }}>
                             < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
                         </TouchableOpacity >
                         {this.props.bIsDownloading ? (<ActivityIndicator size={'small'} style={styles.icon} ></ActivityIndicator>) : (<TouchableOpacity onPress={this.onDownloadOrDeletePressed.bind(this)}>
-                            {this.props.chapter.downloadedPages.length ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <MaterialIcons style={styles.icon} name="file-download" size={25} color="white" />}
+                            {this.props.chapter.offline ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <MaterialIcons style={styles.icon} name="file-download" size={25} color="white" />}
                         </TouchableOpacity>)}
                     </View>
-                    {this.props.bIsLast && <View style={{ height: 10 }}></View>}
+                    {this.props.bIsLast && <View style={{ height: 10 }} />}
                 </>
-
-
             )
         }
         else {
             return (
                 <>
-                    <View style={styles.container} level={'level2'}>
-                        <TouchableOpacity disabled={this.props.chapter.downloadedPages.length === 0} style={styles.readTouchable} onPress={() => { this.props.readChapter(this.props.chapter); }}>
+                    <View style={styles.container}>
+                        <Animated.View style={[styles.progressContainer]} />
+                        <TouchableOpacity disabled={!this.props.chapter.offline} style={styles.readTouchable} onPress={() => { this.props.readChapter(this.props.chapter); }}>
                             < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
                         </TouchableOpacity >
-                        {this.props.chapter.downloadedPages.length ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <Ionicons style={styles.icon} name="ios-cloud-offline" size={24} color="white" />}
+                        {this.props.chapter.offline ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <Ionicons style={styles.icon} name="ios-cloud-offline" size={24} color="white" />}
                     </View>
-                    {this.props.bIsLast && <View style={{ height: 10 }}></View>}
+                    {this.props.bIsLast && <View style={{ height: 10 }} />}
                 </>
 
 
@@ -93,10 +100,11 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
 
     shouldComponentUpdate(nextProps: Readonly<MangaChapterTouchableProps>, nextState: Readonly<MangaChapterTouchableState>) {
         if (this.state.isOnline !== nextState.isOnline) return true;
-        return this.props.hasReadChapter !== nextProps.hasReadChapter || this.props.chapter.downloadedPages.length !== nextProps.chapter.downloadedPages.length || this.props.bIsDownloading !== nextProps.bIsDownloading;
+        return this.props.hasReadChapter !== nextProps.hasReadChapter || this.props.chapter.offline !== nextProps.chapter.offline || this.props.bIsDownloading !== nextProps.bIsDownloading;
     }
 
 }
+
 const styles = StyleSheet.create({
 
     container: {
@@ -106,13 +114,27 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         flexDirection: 'row',
         justifyContent: 'flex-start',
-        paddingHorizontal: 20,
         alignItems: 'center',
+        overflow: 'hidden',
+        borderColor: '#3b3b3b',
+        borderWidth: 1,
+        margin: -1
+    },
+    progressContainer: {
+        width: '100%',
+        marginRight: '-100%',
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        backgroundColor: '#3b3b3b'
     },
     readTouchable: {
         flex: 1,
+        marginLeft: 20
     },
     icon: {
-        margin: 5
+        margin: 5,
+        marginRight: 20
     }
 });

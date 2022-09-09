@@ -12,6 +12,7 @@ export default function useManga(id: string): IMangaData | null {
     const fetchManga = useCallback(async () => {
         try {
             const url = `http://144.172.75.61:8089/${source.id}/${id}/`
+            console.log(url)
             const response: IMangaData | 'cancelled' = (await axios.get(url))?.data;
 
             if (response !== 'cancelled' && IsMounted()) {

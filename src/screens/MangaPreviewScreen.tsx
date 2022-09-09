@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Image, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
 import { SafeAreaView, Text, View, ScrollView, FlatList } from '../components/Themed';
-import useMangaDexChapters from '../hooks/useMangaChapters';
+import useMangaChapters from '../hooks/useMangaChapters';
 import { BaseStackParamList, BaseStackScreenProps, IMangaChapter, IMangaData, IStoredMangaChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
 import { isTablet } from '../utils';
@@ -17,13 +17,13 @@ import useSource from '../hooks/useSource';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
-  const { readChapters, hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
 
   const { source } = useSource();
 
   const dispatch = useAppDispatch();
 
-  const downloads = useAppSelector(state => state.chapters.chaptersBeingDownloaded)
+  const downloads = useAppSelector(state => state.chapters.hasPendingAction)
 
   const onReadChapter = (chapter: IMangaChapter) => {
     if (manga) {
@@ -44,7 +44,6 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
       level={'level1'}
       style={[styles.scroll]}
       contentContainerStyle={{ alignItems: 'stretch' }}
-      key={null}
       data={chapters}
       renderItem={({ item, index }) => <MangaChapterPreviewTouchable
         bIsDownloading={downloads.includes(source.id + manga.id + item.id)}
@@ -97,7 +96,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const { width } = useWindowDimensions();
 
-  const chapters = useMangaDexChapters(manga.id || '');
+  const chapters = useMangaChapters(manga.id || '');
 
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 

@@ -1,4 +1,7 @@
 import { Dimensions } from "react-native";
+import axios from "axios";
+import { encode } from "base64-arraybuffer";
+import * as FileSystem from 'expo-file-system';
 
 export function getDiagonalScreenSize() {
     const { width, height } = Dimensions.get('screen');
@@ -44,6 +47,60 @@ export function resolveAllPromises<T = any>(promises: Promise<T>[]) {
             })
         })
     })
+}
+
+export async function getUrlSize(url: string) {
+    const response = await axios.head(url);
+    return parseInt(response.headers['content-length'], 10) || 0;
+}
+
+export async function getChapterDownloadSize(pages: string[]) {
+    return (await resolveAllPromises(pages.map(p => getUrlSize(p)))).reduce((total, currentSize) => total + currentSize, 0);
+}
+
+async function downloadPageFromUrl(url: string, sourceId: string, mangaId: string, chapterId: string, index: number, onDelta: (delta: number) => void): Promise<void> {
+    let currentProgress = 0;
+    try {
+        const imageResponse = await axios.get<ArrayBuffer>(url, {
+            responseType: 'arraybuffer', onDownloadProgress: (event) => {
+                const current = event.loaded
+                onDelta(current - currentProgress);
+                currentProgress = current;
+            }
+        });
+
+        await FileSystem.writeAsStringAsync(`${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${chapterId}/${index}.page`, 'data:image/png;base64, ' + encode(imageResponse.data));
+    } catch (error) {
+        onDelta(-currentProgress);
+        console.log('error while downloading page', (error as any).message);
+        await downloadPageFromUrl(url, sourceId, mangaId, chapterId, index, onDelta);
+        return;
+    }
+
+}
+
+export async function downloadChapter(sourceId: string, mangaId: string, chapterId: string, onProgress: (progress: number) => void) {
+    const url = `http://144.172.75.61:8089/${sourceId}/${mangaId}/chapters/${chapterId}`;
+    const pageUrls: string[] | 'cancelled' = (await axios.get(url))?.data;
+    if (pageUrls !== 'cancelled') {
+
+        const dir = `${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${chapterId}/`;
+        console.log('maiking dir', dir)
+        try {
+            if (!(await FileSystem.getInfoAsync(dir)).exists) await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+        } catch (error) {
+            console.log(error);
+        }
+
+        const totalDownloadSize = await getChapterDownloadSize(pageUrls);
+        let progressSize = 0;
+        function onDownloadDelta(delta: number) {
+
+            progressSize += delta;
+            onProgress(progressSize / totalDownloadSize)
+        }
+        await resolveAllPromises(pageUrls.map((res, idx) => { return downloadPageFromUrl(res, sourceId, mangaId, chapterId, idx, onDownloadDelta) }));
+    }
 }
 
 

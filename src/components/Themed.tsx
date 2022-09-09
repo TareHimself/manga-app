@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView, FlatList as DefaultFlatList, Platform, StatusBar, ScrollView as DefaultScrollView } from 'react-native';
-
+import { Text as DefaultText, View as DefaultView, SafeAreaView as DefaultSafeAreaView, FlatList as DefaultFlatList, Platform, StatusBar, ScrollView as DefaultScrollView, StyleProp, ViewStyle } from 'react-native';
+import { Animated } from 'react-native';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import { viewLevel } from '../types';
@@ -14,6 +14,7 @@ type ThemeProps = {
   lightColor?: string;
   darkColor?: string;
 };
+
 
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = { level?: viewLevel } & DefaultView['props'];

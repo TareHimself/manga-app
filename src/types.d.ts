@@ -35,7 +35,8 @@ export interface IMangaChapter {
 export interface IStoredMangaChapter {
   id: string;
   title: string;
-  downloadedPages: string[];
+  read: number;
+  offline: number;
 }
 
 export interface IMangaData {
@@ -63,7 +64,7 @@ export type BaseStackParamList = {
 export interface ChaptersState {
   chapters: { [id: string]: IStoredMangaChapter[] };
   loadedChapters: string[];
-  chaptersBeingDownloaded: string[],
+  hasPendingAction: string[],
 }
 
 export interface SourceState {

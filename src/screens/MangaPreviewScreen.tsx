@@ -17,21 +17,17 @@ import useSource from '../hooks/useSource';
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
-  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
-
   const { source } = useSource();
 
   const dispatch = useAppDispatch();
 
   const downloads = useAppSelector(state => state.chapters.hasPendingAction)
 
-  const onReadChapter = (chapter: IMangaChapter) => {
+  const onReadChapter = useCallback((chapter: IStoredMangaChapter) => {
     if (manga) {
-      if (!hasReadChapter(chapter.id)) addReadChapter(chapter.id);
-
       navigate('ReadMangaModal', { manga: manga, chapters: chapters, startChapter: chapter });
     }
-  }
+  }, [manga])
 
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
@@ -54,7 +50,6 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
         chapter={item}
         key={item.id}
         readChapter={onReadChapter}
-        hasReadChapter={hasReadChapter(item.id)}
         bIsLast={index === chapters.length - 1}
       />}
     />

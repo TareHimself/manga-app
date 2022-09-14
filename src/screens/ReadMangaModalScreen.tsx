@@ -9,17 +9,19 @@ import { useWindowDimensions } from 'react-native';
 import useReadChapters from '../hooks/useReadChapters';
 import MangaReader from '../components/MangaReader';
 import Toast from 'react-native-root-toast';
+import { setChapterAsRead } from '../redux/slices/chaptersSlice';
+import useSource from '../hooks/useSource';
+import { useAppDispatch } from '../redux/hooks';
 
 export default function ReadMangaModalScreen({ route, navigation }: BaseStackScreenProps<'ReadMangaModal'>) {
 
   const { manga, startChapter, chapters } = route.params;
-
-  const { hasReadChapter, addReadChapter } = useReadChapters(manga.id);
+  const { id: sourceId } = useSource().source;
   const currentChapterIndex = useRef(chapters.indexOf(startChapter));
 
   const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id)
 
-  const { width, height } = useWindowDimensions();
+  const dispatch = useAppDispatch();
 
   const onReaderNavigate = useCallback(async (op: MangaReaderNavigation) => {
 
@@ -32,9 +34,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
             currentChapterIndex.current--;
           }
 
-          if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
-            addReadChapter(chapters[currentChapterIndex.current].id);
+          if (!chapters[currentChapterIndex.current].read) {
+            dispatch(setChapterAsRead([sourceId, manga.id, currentChapterIndex.current, chapters[currentChapterIndex.current]]))
           }
+
           Toast.show('Loading Previous Chapter', {
             duration: Toast.durations.SHORT,
             position: -80
@@ -54,9 +57,10 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
             currentChapterIndex.current++;
           }
 
-          if (!hasReadChapter(chapters[currentChapterIndex.current].id)) {
-            addReadChapter(chapters[currentChapterIndex.current].id);
+          if (!chapters[currentChapterIndex.current].read) {
+            dispatch(setChapterAsRead([sourceId, manga.id, currentChapterIndex.current, chapters[currentChapterIndex.current]]))
           }
+
           Toast.show('Loading Next Chapter', {
             duration: Toast.durations.SHORT,
             position: -80
@@ -72,7 +76,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
 
         break;
     }
-  }, [loadedChapter, chapters, currentChapterIndex, manga, hasReadChapter, addReadChapter])
+  }, [loadedChapter, chapters, currentChapterIndex, manga])
 
   useEffect(() => {
     fetchChapter(currentChapterIndex.current)

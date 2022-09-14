@@ -57,7 +57,7 @@ export type RootTabParamList = {
 export type BaseStackParamList = {
   Root: undefined;
   MangaPreview: { manga: IMangaPreviewData };
-  ReadMangaModal: { manga: IMangaData; chapters: IMangaChapter[]; startChapter: IMangaChapter; hasReadChapter: (chapterId: string) => boolean, addReadChapter: (chapterId: string) => Promise<void> };
+  ReadMangaModal: { manga: IMangaData; chapters: IStoredMangaChapter[]; startChapter: IStoredMangaChapter; hasReadChapter: (chapterId: string) => boolean, addReadChapter: (chapterId: string) => Promise<void> };
 };
 
 
@@ -74,7 +74,7 @@ export interface SourceState {
 }
 
 export interface BookmarksState {
-  data: { [id: string]: IMangaPreviewData }; init: boolean
+  data: IMangaPreviewData[]; init: boolean
 }
 
 export type RootTabScreenProps<T extends keyof RootTabParamList> = NativeStackScreenProps<RootTabParamList, T>;

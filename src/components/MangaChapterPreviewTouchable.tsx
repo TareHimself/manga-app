@@ -4,11 +4,11 @@ import { connect } from "react-redux";
 import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { IMangaChapter, IStoredMangaChapter } from '../types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { addPendingAction, deleteChapter, downloadChapter } from '../redux/slices/chaptersSlice';
+import { addPendingAction, deleteChapter, downloadChapter, setChapterAsRead } from '../redux/slices/chaptersSlice';
 import { store } from '../redux/store';
 import NetInfo, { NetInfoSubscription } from '@react-native-community/netinfo';
 
-export type MangaChapterTouchableProps = { bIsDownloading: boolean; sourceId: string, mangaId: string; chapter: IStoredMangaChapter; chapterIndex: number, readChapter: (chapter: IMangaChapter) => void; hasReadChapter: boolean, dispatch: typeof store.dispatch; bIsLast: boolean };
+export type MangaChapterTouchableProps = { bIsDownloading: boolean; sourceId: string, mangaId: string; chapter: IStoredMangaChapter; chapterIndex: number, readChapter: (chapter: IStoredMangaChapter) => void; dispatch: typeof store.dispatch; bIsLast: boolean };
 
 export type MangaChapterTouchableState = { isOnline: boolean; }
 
@@ -62,14 +62,20 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
 
     }
 
+    markAsRead() {
+        if (!this.props.chapter.read) {
+            this.props.dispatch(setChapterAsRead([this.props.sourceId, this.props.mangaId, this.props.chapterIndex, this.props.chapter]));
+        }
+    }
+
     render(): React.ReactNode {
         if (this.state.isOnline) {
             return (
                 <>
                     <View style={styles.container}>
                         <Animated.View style={[styles.progressContainer, { width: this.DownloadProgress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }), marginRight: this.DownloadProgress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '-100%'] }) }]} />
-                        <TouchableOpacity style={styles.readTouchable} onPress={() => { this.props.readChapter(this.props.chapter); }}>
-                            < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
+                        <TouchableOpacity style={styles.readTouchable} onPress={() => { this.markAsRead(); this.props.readChapter(this.props.chapter); }}>
+                            < Text style={{ color: this.props.chapter.read ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
                         </TouchableOpacity >
                         {this.props.bIsDownloading ? (<ActivityIndicator size={'small'} style={styles.icon} ></ActivityIndicator>) : (<TouchableOpacity onPress={this.onDownloadOrDeletePressed.bind(this)}>
                             {this.props.chapter.offline ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <MaterialIcons style={styles.icon} name="file-download" size={25} color="white" />}
@@ -85,7 +91,7 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
                     <View style={styles.container}>
                         <Animated.View style={[styles.progressContainer]} />
                         <TouchableOpacity disabled={!this.props.chapter.offline} style={styles.readTouchable} onPress={() => { this.props.readChapter(this.props.chapter); }}>
-                            < Text style={{ color: this.props.hasReadChapter ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
+                            < Text style={{ color: this.props.chapter.read ? 'red' : 'white', fontSize: 15 }}> {this.props.chapter.title}</Text >
                         </TouchableOpacity >
                         {this.props.chapter.offline ? <MaterialIcons style={styles.icon} name="delete" size={25} color="white" /> : <Ionicons style={styles.icon} name="ios-cloud-offline" size={24} color="white" />}
                     </View>
@@ -99,8 +105,7 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
     }
 
     shouldComponentUpdate(nextProps: Readonly<MangaChapterTouchableProps>, nextState: Readonly<MangaChapterTouchableState>) {
-        if (this.state.isOnline !== nextState.isOnline) return true;
-        return this.props.hasReadChapter !== nextProps.hasReadChapter || this.props.chapter.offline !== nextProps.chapter.offline || this.props.bIsDownloading !== nextProps.bIsDownloading;
+        return this.state.isOnline !== nextState.isOnline || this.props.chapter.read !== nextProps.chapter.read || this.props.chapter.offline !== nextProps.chapter.offline || this.props.bIsDownloading !== nextProps.bIsDownloading;
     }
 
 }

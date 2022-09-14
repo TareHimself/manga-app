@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { resetBookmarksInit } from '../redux/slices/bookmarksSlice';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { setSource, setSourceByIndex } from '../redux/slices/sourceSlice';
+import { setBookmarks } from '../db';
 
 export default function SettingsScreen({ navigation }: RootTabScreenProps<'Settings'>) {
   const { source, nextSource } = useSource();
@@ -49,9 +50,10 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
         try {
           const fileReadIn = await FileSystem.readAsStringAsync(file.uri, { encoding: 'utf8' });
 
-          if (JSON.parse(fileReadIn).s !== source.id) { throw new Error('The bookmarks file is from a different source') }
+          const dataLoaded = JSON.parse(fileReadIn);
+          if (dataLoaded.s !== source.id) { throw new Error('The bookmarks file is from a different source') }
 
-          await FileSystem.writeAsStringAsync(savePath, fileReadIn, { encoding: 'utf8' })
+          await setBookmarks(source.id, dataLoaded.d);
           dispatch(resetBookmarksInit());
         } catch (error: any) {
           Toast.show(error.message, {
@@ -94,7 +96,7 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
           theme="DARK"
           multiple={false}
           mode="SIMPLE"
-          listMode='SCROLLVIEW' />
+          listMode="MODAL" />
       </ScrollView>
     </SafeAreaView>
 

@@ -3,6 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import Constants from "expo-constants"
 import * as FileSystem from 'expo-file-system';
 import { BookmarksState, IMangaPreviewData, MangaSource } from '../../types'
+import { getBookmarks, setBookmarks } from '../../db';
 
 
 async function commitToStorage(sourceId: string, data: { [id: string]: IMangaPreviewData }) {
@@ -13,7 +14,7 @@ async function commitToStorage(sourceId: string, data: { [id: string]: IMangaPre
 
 // Define the initial state using that type
 const initialState: BookmarksState = {
-	data: {},
+	data: [],
 	init: false
 }
 
@@ -21,17 +22,33 @@ const initialState: BookmarksState = {
 const load = createAsyncThunk(
 	'bookmarks/load',
 	async (sourceId: string, thunkAPI) => {
-		const savePath = `${FileSystem.documentDirectory!}${sourceId}_bookmarks.dat`;
-		const tmp = await FileSystem.getInfoAsync(savePath);
-		if (tmp.exists) {
-			const bookmarksAsString = await FileSystem.readAsStringAsync(savePath, { encoding: 'utf8' });
+		return await getBookmarks(sourceId);
+	}
+)
 
-			if (bookmarksAsString) {
-				return JSON.parse(bookmarksAsString).d as IMangaPreviewData[];
-			}
-		}
+// First, create the thunk
+const addBookmark = createAsyncThunk(
+	'bookmarks/add',
+	async ({ sourceId, manga }: { sourceId: string, manga: IMangaPreviewData }, { getState }) => {
+		const { data } = (getState() as any).bookmarks as BookmarksState;
+		const newData = [...data]
+		newData.unshift(manga);
+		await setBookmarks(sourceId, newData);
 
-		return []
+		return newData;
+	}
+)
+
+// First, create the thunk
+const removeBookmark = createAsyncThunk(
+	'bookmarks/remove',
+	async ({ sourceId, id }: { sourceId: string, id: string }, { getState }) => {
+		const { data } = (getState() as any).bookmarks as BookmarksState;
+		const newData = [...data]
+		newData.splice(newData.findIndex(b => b.id === id), 1);
+		await setBookmarks(sourceId, newData);
+
+		return newData;
 	}
 )
 
@@ -40,31 +57,25 @@ export const bookmarksSlice = createSlice({
 	// `createSlice` will infer the state type from the `initialState` argument
 	initialState,
 	reducers: {
-		add: (state, action: PayloadAction<{ sourceId: string; item: IMangaPreviewData }>) => {
-			state.data[action.payload.item.id] = action.payload.item;
-
-			commitToStorage(action.payload.sourceId, state.data);
-		},
-		remove: (state, action: PayloadAction<{ sourceId: string; id: string }>) => {
-			delete state.data[action.payload.id];
-			commitToStorage(action.payload.sourceId, state.data);
-		},
 		resetBookmarksInit: (state) => {
 			state.init = false;
 		}
 	},
 	extraReducers: (builder) => {
 		builder.addCase(load.fulfilled, (state, action) => {
-			state.data = {};
+			state.data = action.payload;
 			state.init = true;
-			action.payload.forEach((d) => {
-				state.data[d.id] = d;
+		}),
+			builder.addCase(addBookmark.fulfilled, (state, action) => {
+				state.data = action.payload;
+			}),
+			builder.addCase(removeBookmark.fulfilled, (state, action) => {
+				state.data = action.payload;
 			})
-		})
 	}
 })
 
-export const { add, remove, resetBookmarksInit } = bookmarksSlice.actions
-export { load }
+export const { resetBookmarksInit } = bookmarksSlice.actions
+export { load, addBookmark, removeBookmark }
 
 export default bookmarksSlice.reducer

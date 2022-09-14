@@ -79,15 +79,21 @@ async function downloadPageFromUrl(url: string, sourceId: string, mangaId: strin
 
 }
 
+
+export async function makeDir(dir: string) {
+    const result = await Promise.race([FileSystem.makeDirectoryAsync(dir, { intermediates: true }), new Promise((resolve) => setTimeout(resolve, 4000, 'again'))])
+    if (result === 'again') {
+        await makeDir(dir);
+    }
+}
+
 export async function downloadChapter(sourceId: string, mangaId: string, chapterId: string, onProgress: (progress: number) => void) {
     const url = `http://144.172.75.61:8089/${sourceId}/${mangaId}/chapters/${chapterId}`;
     const pageUrls: string[] | 'cancelled' = (await axios.get(url))?.data;
     if (pageUrls !== 'cancelled') {
-
         const dir = `${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${chapterId}/`;
-        console.log('maiking dir', dir)
         try {
-            if (!(await FileSystem.getInfoAsync(dir)).exists) await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+            if (!(await FileSystem.getInfoAsync(dir)).exists) await makeDir(dir);
         } catch (error) {
             console.log(error);
         }

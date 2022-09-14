@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { IStoredMangaChapter } from './types';
+import { IMangaPreviewData, IStoredMangaChapter } from './types';
 
 
 const initialStatements = [
@@ -36,6 +36,26 @@ const initialStatements = [
 
 const db = SQLite.openDatabase('data.db');
 
+
+export async function getBookmarks(source: string) {
+	return new Promise<IMangaPreviewData[]>((resolve) => {
+		db.readTransaction((tx) => {
+			tx.executeSql('SELECT id,title,cover FROM bookmarks WHERE src=? ORDER BY idx ASC', [source], (txObj, { rows: { _array } }) => { resolve(_array) }, (tsx, err) => { console.log(err.message); return true; })
+		})
+	})
+}
+
+export async function setBookmarks(source: string, bookmarks: IMangaPreviewData[]) {
+	return new Promise<void>((resolve) => {
+		db.transaction((tx) => {
+			tx.executeSql('DELETE FROM bookmarks WHERE src=?', [source]);
+			bookmarks.forEach((b, idx) => {
+				tx.executeSql(`INSERT INTO bookmarks(src,id,title,cover,idx) VALUES(?,?,?,?,?)`, [source, b.id, b.title, b.cover, idx], () => { }, (tsx, err) => { console.log(err.message); return true; });
+			})
+		}, () => { }, () => { resolve() })
+	})
+}
+
 export async function getChapters(source: string, manga: string) {
 	return new Promise<IStoredMangaChapter[]>((resolve) => {
 		db.readTransaction((tx) => {
@@ -49,7 +69,7 @@ export async function setChapters(source: string, manga: string, chapters: IStor
 		db.transaction((tx) => {
 			tx.executeSql('DELETE FROM chapters WHERE src=? AND manga=?', [source, manga]);
 			chapters.forEach((c, idx) => {
-				tx.executeSql(`INSERT INTO chapters(src,manga,id,title,read,offline,idx) VALUES(?,?,?,?,?,?,?)`, [source, manga, c.id, c.title, c.read, c.offline, (chapters.length - 1) - idx], () => { console.log('stored chapter') }, (tsx, err) => { console.log(err.message); return true; });
+				tx.executeSql(`INSERT INTO chapters(src,manga,id,title,read,offline,idx) VALUES(?,?,?,?,?,?,?)`, [source, manga, c.id, c.title, c.read, c.offline, (chapters.length - 1) - idx], () => { }, (tsx, err) => { console.log(err.message); return true; });
 			})
 		}, () => { }, () => { resolve() })
 	})
@@ -69,6 +89,6 @@ tx.executeSql('DROP INDEX idx_bookmarks');
 tx.executeSql('DROP INDEX idx_chapters');*/
 
 db.transaction((tx) => {
-	//initialStatements.forEach(statement => tx.executeSql(statement, undefined, () => { }, (a, e) => { console.log(statement, e.message); return true; }))
+	initialStatements.forEach(statement => tx.executeSql(statement, undefined, () => { }, (a, e) => { console.log(statement, e.message); return true; }))
 })
 

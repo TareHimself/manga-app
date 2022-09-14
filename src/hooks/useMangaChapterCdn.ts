@@ -5,7 +5,7 @@ import { useAppSelector } from "../redux/hooks";
 import useSource from "./useSource";
 import { useUniqueId } from "./useUniqueId";
 import * as FileSystem from 'expo-file-system';
-import { resolveAllPromises } from "../utils";
+import { clamp, resolveAllPromises } from "../utils";
 
 export default function useMangaDexChapterCdn(mangaId: string): [boolean, string[] | undefined, (chapterIndex: number) => Promise<boolean>] {
     const loadedChapters = useRef(new Map<string, string[]>());
@@ -21,7 +21,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
     const allMangaChapters = useAppSelector(state => state.chapters.chapters[source.id + mangaId]);
 
     const fetchChapter = useCallback(async (chapterIndex: number) => {
-        const targetChapter = allMangaChapters[chapterIndex || 0];
+        const targetChapter = allMangaChapters[clamp(chapterIndex, 0, allMangaChapters.length - 1)];
 
         const chapterInPool = loadedChapters.current.get(targetChapter.id);
         setIsLoadingChapter(true);

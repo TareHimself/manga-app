@@ -40,7 +40,7 @@ const db = SQLite.openDatabase('data.db');
 export async function getBookmarks(source: string) {
 	return new Promise<IMangaPreviewData[]>((resolve) => {
 		db.readTransaction((tx) => {
-			tx.executeSql('SELECT id,title,cover FROM bookmarks WHERE src=? ORDER BY idx ASC', [source], (txObj, { rows: { _array } }) => { resolve(_array) }, (tsx, err) => { console.log(err.message); return true; })
+			tx.executeSql('SELECT id,title,cover FROM bookmarks WHERE src=? ORDER BY idx ASC', [source], (txObj, { rows: { _array } }) => { resolve(_array || []) }, (tsx, err) => { console.log(err.message); return true; })
 		})
 	})
 }
@@ -59,12 +59,12 @@ export async function setBookmarks(source: string, bookmarks: IMangaPreviewData[
 export async function getChapters(source: string, manga: string) {
 	return new Promise<IStoredMangaChapter[]>((resolve) => {
 		db.readTransaction((tx) => {
-			tx.executeSql('SELECT id,title,read,offline FROM chapters WHERE src=? AND manga=? ORDER BY idx DESC', [source, manga], (txObj, { rows: { _array } }) => { resolve(_array) }, (tsx, err) => { console.log(err.message); return true; })
+			tx.executeSql('SELECT id,title,read,offline FROM chapters WHERE src=? AND manga=? ORDER BY idx DESC', [source, manga], (txObj, { rows: { _array } }) => { resolve(_array || []) }, (tsx, err) => { console.log(err.message); return true; })
 		})
 	})
 }
 
-export async function setChapters(source: string, manga: string, chapters: IStoredMangaChapter[]) {
+export async function overwriteChapters(source: string, manga: string, chapters: IStoredMangaChapter[]) {
 	return new Promise<void>((resolve) => {
 		db.transaction((tx) => {
 			tx.executeSql('DELETE FROM chapters WHERE src=? AND manga=?', [source, manga]);
@@ -75,8 +75,17 @@ export async function setChapters(source: string, manga: string, chapters: IStor
 	})
 }
 
+export async function addChapters(source: string, manga: string, chapters: IStoredMangaChapter[], indexes: number[]) {
+	return new Promise<void>((resolve) => {
+		db.transaction((tx) => {
+			chapters.forEach((c, idx) => {
+				tx.executeSql(`INSERT INTO chapters(src,manga,id,title,read,offline,idx) VALUES(?,?,?,?,?,?,?)`, [source, manga, c.id, c.title, c.read, c.offline, indexes[idx]], () => { }, (tsx, err) => { console.log(err.message); return true; });
+			})
+		}, () => { }, () => { resolve() })
+	})
+}
+
 export async function updateChapter(source: string, manga: string, c: IStoredMangaChapter) {
-	console.log('updating', c)
 	return new Promise<void>((resolve) => {
 		db.transaction((tx) => {
 			tx.executeSql(`UPDATE chapters SET read=?,offline=? WHERE src=? AND manga=? AND id=?`, [c.read ? 1 : 0, c.offline ? 1 : 0, source, manga, c.id], () => { resolve() }, (a, e) => { console.log(e.message); return true; });

@@ -35,13 +35,10 @@ export default function useReadChapters(mangaId: string): { readChapters: string
 	useEffect(() => {
 		async function loadChaptersRead(mangaId: string) {
 			const chaptersAsString = await SecureStore.getItemAsync(`${mangaId}-chapter-tracker`);
-			if (!chaptersAsString) {
-				await SecureStore.setItemAsync(`${mangaId.toLowerCase()}-chapter-tracker`, '');
-				setChaptersRead([])
+			if (chaptersAsString) {
+
 			}
-			else {
-				setChaptersRead(chaptersAsString.split('|'));
-			}
+			console.log(chaptersAsString)
 		}
 
 		function onChaptersReadUpdated(causer: string, update: string[]) {

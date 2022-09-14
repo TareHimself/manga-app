@@ -7,7 +7,7 @@ import axios from 'axios';
 import { encode } from 'base64-arraybuffer';
 import { downloadChapter as downloadUtil } from '../../utils';
 import { resolveAllPromises } from '../../utils';
-import { getChapters, setChapters, updateChapter } from '../../db';
+import { addChapters, getChapters, overwriteChapters, updateChapter } from '../../db';
 
 // Define the initial state using that type
 const initialState: ChaptersState = {
@@ -28,27 +28,38 @@ const loadChapters = createAsyncThunk(
 			chapters: ChaptersState;
 		};
 
-		if (!chapters.loadedChapters.includes(source + manga)) {
-
-		}
-
 		data = await getChapters(source, manga);
 
 		try {
 			const url = `http://144.172.75.61:8089/${source}/${manga}/chapters/`
 			const response: IMangaChapter[] | 'cancelled' = (await axios.get(url))?.data;
+			if (response !== 'cancelled' && response.length) {
+				if (!data.length) {
+					const chaptersAdded = [] as string[];
+					response.forEach((res) => {
+						if (!chaptersAdded.includes(res.id)) {
+							chaptersAdded.push(res.id);
+							data.push({ ...res, offline: 0, read: 0 });
+						}
+					})
+					overwriteChapters(source, manga, data);
+				} else if (response[0].id.trim() !== data[0].id.trim()) {
+					const targetIndex = response.findIndex(a => a.id === data[0].id);
+					const newItems = response.slice(0, targetIndex)
+					const newData: IStoredMangaChapter[] = [];
+					const chaptersAdded = [] as string[];
+					newItems.forEach((n) => {
+						if (!chaptersAdded.includes(n.id)) {
+							chaptersAdded.push(n.id);
+							newData.push({ ...n, offline: 0, read: 0 });
+						}
+					})
+					data = [...newData, ...data];
+					addChapters(source, manga, newData, newData.map((d, idx) => { return (data.length - 1) - idx }));
 
-			if (response !== 'cancelled' && response[0]?.id !== data[0]?.id) {
-				console.log(response[0]?.id, data[0]?.id)
-				const chaptersAdded = [] as string[];
-				response.forEach((res) => {
-					if (!chaptersAdded.includes(res.id)) {
-						chaptersAdded.push(res.id);
-						data.push({ ...res, offline: 0, read: 0 });
-					}
-				})
-				setChapters(source, manga, data);
+				}
 			}
+
 		} catch (error) {
 			console.log(error)
 		}

@@ -29,6 +29,8 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
     }
   }, [manga])
 
+  //useReadChapters(manga.id);
+
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
   }, []);
@@ -48,7 +50,7 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
         mangaId={manga.id}
         chapterIndex={index}
         chapter={item}
-        key={item.id}
+        key={index}
         readChapter={onReadChapter}
         bIsLast={index === chapters.length - 1}
       />}

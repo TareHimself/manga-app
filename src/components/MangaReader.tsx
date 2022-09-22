@@ -94,7 +94,8 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 			const target = document.getElementById('interactionContainer');
 			const parent = document.getElementById('imgContainer');
 			if (target) {
-				target.style.height = parent.getBoundingClientRect().height;
+				print(Math.max(parent.getBoundingClientRect().height, window.innerHeight))
+				target.style.height = Math.max(parent.getBoundingClientRect().height, window.innerHeight);
 			}
 		}
 
@@ -104,7 +105,7 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		}
 	</script>
 	<div id="imgContainer">
-		<div id="interactionContainer">
+		<div id="interactionContainer" style="height: 100vh;">
 			<button data-msg="previous" onclick="onButtonClicked(event)"></button>
 			<button data-msg='info' onclick="onButtonClicked(event)"></button>
 			<button data-msg='next' onclick="onButtonClicked(event)"></button>
@@ -126,9 +127,4 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		</View>
 
 	);
-	//return (
-	//     <Image progressiveRenderingEnabled={true} onLoad={onLoad} source={{ uri: imageLoaded }} style={{ ...style as Object, aspectRatio: (ratio ? ratio : 0.69), tintColor: isLoading ? 'black' : undefined }} />
-	//)
-
-	//${images.map(src => `<img src='${src}'>`)}
 }

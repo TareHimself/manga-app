@@ -1,8 +1,7 @@
 import { View, Text } from './Themed'
 import React from 'react'
-import { connect } from "react-redux";
-import { Dimensions, FlatList, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
-import { IMangaChapter, IStoredMangaChapter } from '../types';
+import { StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { IStoredMangaChapter } from '../types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { addPendingAction, deleteChapter, downloadChapter, setChapterAsRead } from '../redux/slices/chaptersSlice';
 import { store } from '../redux/store';

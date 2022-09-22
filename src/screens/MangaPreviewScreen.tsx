@@ -1,19 +1,25 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, Image, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView, Text, View, ScrollView, FlatList } from '../components/Themed';
 import useMangaChapters from '../hooks/useMangaChapters';
 import { BaseStackParamList, BaseStackScreenProps, IMangaChapter, IMangaData, IStoredMangaChapter } from '../types';
 import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
-import { isTablet } from '../utils';
-import useReadChapters from '../hooks/useReadChapters';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
-import usePersistence from '../hooks/usePersistence';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import useSourceChange from '../hooks/useSourceChange';
 import useSource from '../hooks/useSource';
+
+function MangaTag({ tag }: { tag: string }) {
+  return (
+    <View level={'level2'} style={{ borderRadius: 10, margin: 2 }} >
+      <Text style={{ padding: 5, fontSize: 10 }}>
+        {tag}
+      </Text>
+    </View>)
+}
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
@@ -57,37 +63,17 @@ function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chap
     />
 
   )
-
-  /*
-  <ScrollView
-      level={'level1'}
-      style={[styles.scroll]}
-    >
-      {chapters.map((item, idx) => <MangaChapterPreviewTouchable
-        bIsDownloading={downloads.includes(source.id + manga.id + item.id)}
-        dispatch={dispatch}
-        sourceId={source.id}
-        mangaId={manga.id}
-        chapterIndex={idx}
-        chapter={item}
-        key={item.id}
-        readChapter={onReadChapter}
-        hasReadChapter={hasReadChapter(item.id)} />)}
-    </ScrollView>
-    */
 }
 
 export default function MangaPreviewScreen({ navigation, route }: BaseStackScreenProps<'MangaPreview'>) {
 
   const { manga: mangaPreview } = route.params;
 
-  const bIsTablet = isTablet();
-
   const mangaFromApi = useManga(mangaPreview.id);
 
   const manga = mangaFromApi || { ...mangaPreview, description: 'loading', status: 'loading', tags: [] };
 
-  const { title, cover, description, status, id } = manga;
+  const { title, cover, description, status, id, tags } = manga;
 
   const [isOnInfo, setIsOnInfo] = useState(true);
 
@@ -126,6 +112,7 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
         </TouchableOpacity>}
       </View>
+
       <View style={[styles.standardContainer, { flexDirection: 'row' }]} level={'level1'}>
         <View style={styles.imageContainer}>
           <Image style={styles.coverImg} source={{ uri: cover }} />
@@ -136,9 +123,8 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
             <Text style={styles.status}>status | {status}</Text>
           </View>
 
-          <View style={{ width: '100%', alignItems: 'flex-end' }}>
-
-
+          <View style={styles.tagsContainer}>
+            {tags.map(t => <MangaTag tag={t} />)}
           </View>
         </View>
       </View>
@@ -153,17 +139,18 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
         </TouchableOpacity>
       </View>
 
-      {isOnInfo ?
-        <ScrollView style={[styles.infoContainer, { flex: 1 }]}>
-          <View level={'level1'} style={[styles.infoSubContainer]}>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', width: '100%', textAlign: 'center', marginBottom: 20 }}>Description</Text>
-            <Text style={{ fontSize: 15 }}>{manga.description}</Text>
-          </View>
-        </ScrollView> :
-        <ChaptersList manga={manga} navigation={navigation} chapters={chapters} />
+      {
+        isOnInfo ?
+          <ScrollView style={[styles.infoContainer, { flex: 1 }]}>
+            <View level={'level1'} style={[styles.infoSubContainer]}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', width: '100%', textAlign: 'center', marginBottom: 20 }}>Description</Text>
+              <Text style={{ fontSize: 15 }}>{description}</Text>
+            </View>
+          </ScrollView> :
+          <ChaptersList manga={manga} navigation={navigation} chapters={chapters} />
       }
 
-    </SafeAreaView>
+    </SafeAreaView >
 
   );
 
@@ -215,11 +202,11 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     width: '65%',
-    justifyContent: 'space-between'
+    justifyContent: 'flex-start'
   },
   imageContainer: {
     minWidth: 100,
-    width: '20%',
+    width: '30%',
     maxWidth: 150,
     aspectRatio: 0.65,
     marginRight: 10
@@ -288,5 +275,15 @@ const styles = StyleSheet.create({
   },
   readShortcourtButtonText: {
     fontSize: 20
+  },
+  tagsContainer: {
+    width: '100%',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    flexDirection: 'row'
+  },
+  tag: {
+
   }
 });

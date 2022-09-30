@@ -17,7 +17,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
 
   const { manga, startChapter, chapters } = route.params;
   const { id: sourceId } = useSource().source;
-  const currentChapterIndex = useRef(chapters.indexOf(startChapter));
+  const currentChapterIndex = useRef(chapters.findIndex(c => c.id === startChapter.id));
 
   const [isLoadingChapter, loadedChapter, fetchChapter] = useMangaDexChapterCdn(manga.id)
 

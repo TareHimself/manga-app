@@ -21,6 +21,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
     const allMangaChapters = useAppSelector(state => state.chapters.chapters[source.id + mangaId]);
 
     const fetchChapter = useCallback(async (chapterIndex: number) => {
+        console.log('Fetching ', chapterIndex)
         const targetChapter = allMangaChapters[clamp(chapterIndex, 0, allMangaChapters.length - 1)];
 
         const chapterInPool = loadedChapters.current.get(targetChapter.id);

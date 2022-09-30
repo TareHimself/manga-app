@@ -34,7 +34,7 @@ async function commitToStorage(id: string) {
 const loadSource = createAsyncThunk(
 	'source/loadSource',
 	async (sourceId: string, thunkAPI) => {
-		const response = await axios.get('http://144.172.75.61:8089/');
+		const response = await axios.get('https://manga.oyintare.dev/');
 		const sourcesFromApi: MangaSource[] = response.data || [];
 		let currentSource: MangaSource = sourcesFromApi[0] || DEFAULT_SOURCE;
 

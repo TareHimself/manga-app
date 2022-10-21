@@ -98,6 +98,7 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
           mode="SIMPLE"
           listMode="MODAL"
           placeholder='Loading...'
+          modalContentContainerStyle={{ backgroundColor: '#1f1f1f' }}
         />
       </ScrollView>
     </SafeAreaView>

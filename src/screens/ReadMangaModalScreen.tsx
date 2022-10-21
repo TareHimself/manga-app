@@ -86,7 +86,7 @@ export default function ReadMangaModalScreen({ route, navigation }: BaseStackScr
 
   return (
     <SafeAreaView style={styles.container}>
-      <MangaReader onNavigate={onReaderNavigate} images={loadedChapter || []} />
+      <MangaReader onNavigate={onReaderNavigate} images={loadedChapter || []} style={{ backgroundColor: '#1f1f1f' }} />
     </SafeAreaView>
   );
 }

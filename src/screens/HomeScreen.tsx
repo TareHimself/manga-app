@@ -7,6 +7,7 @@ import { View, SafeAreaView } from '../components/Themed';
 import useMangaDexSearch, { DefaultMangaSearch } from '../hooks/useMangaSearch';
 import useSourceChange from '../hooks/useSourceChange';
 import useThrottle from '../hooks/useThrottle';
+import { useAppSelector } from '../redux/hooks';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,7 +28,7 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
 
   const rows = Math.max(Math.floor(width / itemWidth), 1);
 
-  const columns = Math.max(Math.floor(height / itemWidth * 0.65), 1) + 2;
+  const currentSourceName = useAppSelector(s => s.source.source.name)
 
   const latestSearch = useRef('');
 
@@ -65,12 +66,16 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
   }, [textInputRef, onSearchCommited])
   useSourceChange(onSourceChanged)
 
+  if (!isSearching && results.length === 0 && latestSearch.current === '') {
+    onSearchCommited('')
+  }
+
   return (
     <SafeAreaView style={styles.container} level={'level0'}>
       <View
         style={[styles.searchContainer, { marginHorizontal: (Math.min(itemWidth, 200) / 200) * 5 }]
         }>
-        <TextInput ref={(r) => { textInputRef.current = r }} style={styles.searchBar} onChangeText={updateSearch} placeholder={`What's Your Poison ?`} placeholderTextColor={'white'} />
+        <TextInput ref={(r) => { textInputRef.current = r }} style={styles.searchBar} onChangeText={updateSearch} placeholder={`Search ${currentSourceName}`} placeholderTextColor={'white'} />
       </View>
       <FlatList
 

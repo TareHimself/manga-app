@@ -124,13 +124,13 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
           </View>
 
           <View style={styles.tagsContainer}>
-            {tags.map(t => <MangaTag tag={t} />)}
+            {tags.map((t, idx) => <MangaTag tag={t} key={idx} />)}
           </View>
         </View>
       </View>
 
-      <View style={[styles.standardContainer, { flexDirection: 'row', height: 60 }]} level={'level1'}>
-        <View style={[styles.selectOptionBackground, { left: isOnInfo ? 0 : (((width * 0.9) - 20) / 2) }]} level={'level2'} />
+      <View style={[styles.standardContainer, { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 10, justifyContent: 'center' }]} level={'level1'}>
+        <View style={[styles.selectOptionBackground, { left: isOnInfo ? 0 : (((width * 0.95) - 10 * 2) / 2) }]} level={'level2'} />
         <TouchableOpacity style={styles.selectOptionButton} onPress={() => { setIsOnInfo(true) }}>
           <Text style={styles.readShortcourtButtonText}>Info</Text>
         </TouchableOpacity>
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   standardContainer: {
     width: '95%',
-    marginVertical: 10,
+    marginVertical: 5,
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginLeft: '2.5%',
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   infoSubContainer: {
     width: '100%',
-    marginVertical: 10,
+    marginVertical: 5,
     paddingVertical: 10,
     paddingHorizontal: 10,
     borderRadius: 15,
@@ -232,8 +232,7 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: '95%',
-    marginVertical: 10,
-    paddingTop: 10,
+    marginVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 15,
     marginLeft: '2.5%'
@@ -264,14 +263,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 15
+    borderRadius: 15,
   },
   selectOptionBackground: {
     flex: 1,
     width: '50%',
     borderRadius: 15,
     marginRight: '-50%',
-    right: '-450%'
+    right: '-450%',
+    height: 50
   },
   readShortcourtButtonText: {
     fontSize: 20

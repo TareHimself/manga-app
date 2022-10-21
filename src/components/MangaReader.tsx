@@ -20,6 +20,11 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 			await onNavigate(message.data as MangaReaderNavigation);
 			isProcessing.current = false;
 		}
+		else {
+			console.log(message.data)
+		}
+
+		console.log(message)
 
 	}
 
@@ -29,6 +34,7 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
   }, 500);
   true; // note: this is required, or you'll sometimes get silent failures
 `;
+	console.log(webViewScript)
 	return (
 		<View>
 			<WebView
@@ -55,7 +61,7 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		display: flex;
 		flex-direction: column;
 		height: fit-content;
-		background-color: transparent;
+		background-color: #1f1f1f;
 		margin: 0;
 	}
 
@@ -64,7 +70,7 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		height: auto;
 	}
 
-	#imgContainer {
+	#img-container {
 		display: flex;
 		flex-direction: column;
 		height: fit-content;
@@ -72,7 +78,7 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		margin: 0;
 	}
 
-	#interactionContainer {
+	#interaction-container {
 		position: absolute;
 		width: 100%;
 		display: flex;
@@ -80,39 +86,102 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 		opacity: .3;
 	}
 
-	#interactionContainer button {
+	#interaction-container button {
 		flex: 1;
 		margin: 0;
 		background-color: transparent;
 		border: transparent;
 	}
+
+	@keyframes rotate-icon {
+		from {
+			transform: rotate(0deg);
+		}
+
+		25% {
+			transform: rotate(90deg);
+		}
+
+		50% {
+			transform: rotate(180deg);
+		}
+
+		75% {
+			transform: rotate(270deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	svg {
+		width: 30%;
+		margin: 0 auto;
+		height: auto;
+		animation: rotate-icon .8s linear infinite;
+	}
+
+	svg path {
+		fill: white;
+	}
 </style>
 
 <body>
+
 	<script>
 		function fixHeight() {
-			const target = document.getElementById('interactionContainer');
-			const parent = document.getElementById('imgContainer');
+			const target = document.getElementById('interaction-container');
+			const parent = document.getElementById('img-container');
 			if (target) {
-				print(Math.max(parent.getBoundingClientRect().height, window.innerHeight))
 				target.style.height = Math.max(parent.getBoundingClientRect().height, window.innerHeight);
 			}
 		}
 
 		function onButtonClicked(e) {
 			const msg = e.target.getAttribute('data-msg') || '';
-			window.ReactNativeWebView.postMessage(JSON.stringify({ op: 'nav' , data: msg}));
+			window.ReactNativeWebView.postMessage(JSON.stringify({ op: 'nav' , data: msg})); 
 		}
 	</script>
-	<div id="imgContainer">
-		<div id="interactionContainer" style="height: 100vh;">
+
+	<div id="img-container">
+		<div id="interaction-container" style="height: 100vh;">
 			<button data-msg="previous" onclick="onButtonClicked(event)"></button>
 			<button data-msg='info' onclick="onButtonClicked(event)"></button>
 			<button data-msg='next' onclick="onButtonClicked(event)"></button>
 		</div>
-        ${images.map(src => `<img onload="fixHeight()"src='${src}'>`)}
+
 	</div>
 
+	<script>
+		function addImages(items) {
+			const target = document.getElementById('img-container');
+			items.forEach((url, idx) => {
+				const newImg = new Image();
+				const loader = \`<svg version="1.1" id="loader-\${idx}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+			x="0px" y="0px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;"
+			xml:space="preserve">
+			<path fill="#000"
+				d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+			</path>
+		</svg>\`
+				
+				target.innerHTML = target.innerHTML + loader
+				newImg.onload = () => {
+					const loaderElement = document.getElementById(\`loader-\${idx}\`)
+
+					loaderElement.parentNode.replaceChild(newImg, loaderElement)
+					fixHeight()
+				}
+
+				newImg.src = url
+
+				
+			})
+		}
+
+		addImages([${images.reduce((t, i, idx) => t + `"${i}"${idx === images.length - 1 ? '' : ','}`, "")}])
+	</script>
 </body>
 
 </html>` }} originWhitelist={['*']}
@@ -120,7 +189,6 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 				javaScriptEnabled={true}
 				domStorageEnabled={true}
 				startInLoadingState={false}
-
 				injectedJavaScript={webViewScript}
 			/>
 

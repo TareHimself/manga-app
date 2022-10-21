@@ -15,7 +15,7 @@
 		display: flex;
 		flex-direction: column;
 		height: fit-content;
-		background-color: transparent;
+		background-color: #1f1f1f;
 		margin: 0;
 	}
 
@@ -24,7 +24,7 @@
 		height: auto;
 	}
 
-	#imgContainer {
+	#img-container {
 		display: flex;
 		flex-direction: column;
 		height: fit-content;
@@ -32,7 +32,7 @@
 		margin: 0;
 	}
 
-	#interactionContainer {
+	#interaction-container {
 		position: absolute;
 		width: 100%;
 		display: flex;
@@ -40,21 +40,54 @@
 		opacity: .3;
 	}
 
-	#interactionContainer button {
+	#interaction-container button {
 		flex: 1;
 		margin: 0;
 		background-color: transparent;
 		border: transparent;
 	}
+
+	@keyframes rotate-icon {
+		from {
+			transform: rotate(0deg);
+		}
+
+		25% {
+			transform: rotate(90deg);
+		}
+
+		50% {
+			transform: rotate(180deg);
+		}
+
+		75% {
+			transform: rotate(270deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	svg {
+		width: 30%;
+		margin: 0 auto;
+		height: auto;
+		animation: rotate-icon .8s linear infinite;
+	}
+
+	svg path {
+		fill: white;
+	}
 </style>
 
 <body>
+
 	<script>
 		function fixHeight() {
-			const target = document.getElementById('interactionContainer');
-			const parent = document.getElementById('imgContainer');
+			const target = document.getElementById('interaction-container');
+			const parent = document.getElementById('img-container');
 			if (target) {
-				print(Math.max(parent.getBoundingClientRect().height, window.innerHeight))
 				target.style.height = Math.max(parent.getBoundingClientRect().height, window.innerHeight);
 			}
 		}
@@ -64,16 +97,57 @@
 			console.log(msg)
 		}
 	</script>
-	<div id="imgContainer">
-		<div id="interactionContainer" style="height: 100vh;">
+
+	<div id="img-container">
+		<div id="interaction-container" style="height: 100vh;">
 			<button data-msg="previous" onclick="onButtonClicked(event)"></button>
 			<button data-msg='info' onclick="onButtonClicked(event)"></button>
 			<button data-msg='next' onclick="onButtonClicked(event)"></button>
 		</div>
-		<img onload="fixHeight()"
-			src='https://c4.wallpaperflare.com/wallpaper/224/829/129/digital-digital-art-artwork-illustration-simple-hd-wallpaper-preview.jpg'>
+
 	</div>
 
+	<script>
+		function addImages(items) {
+			const target = document.getElementById('img-container');
+			items.forEach((url, idx) => {
+				const newImg = new Image();
+				const loader = `<svg version="1.1" id="loader-${idx}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+			x="0px" y="0px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;"
+			xml:space="preserve">
+			<path fill="#000"
+				d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+			</path>
+		</svg>`
+				target.innerHTML = target.innerHTML + loader
+				newImg.onload = () => {
+					const loaderElement = document.getElementById(`loader-${idx}`)
+					loaderElement.parentNode.replaceChild(newImg, loaderElement)
+					fixHeight()
+				}
+
+				newImg.src = url
+			})
+		}
+
+		addImages([
+			"https://readm.org/uploads/chapter_files/21597/20/1.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/2.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/3.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/4.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/5.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/6.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/7.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/8.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/9.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/10.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/11.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/12.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/13.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/14.jpg?v=12",
+			"https://readm.org/uploads/chapter_files/21597/20/15.jpg?v=12"
+		])
+	</script>
 </body>
 
 </html>

@@ -18,7 +18,7 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch, o
 
     const makeSearch = useCallback(async (search: string = DefaultMangaSearch) => {
         try {
-            const url = `https://manga.oyintare.dev/${source.id}/search?${new URLSearchParams({ s: search }).toString()}`;
+            const url = `https://proxy.oyintare.dev/manga/${source.id}/search?${new URLSearchParams({ q: search }).toString()}`;
 
             if (lastRequestController.current) {
                 lastRequestController.current.abort();

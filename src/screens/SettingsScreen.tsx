@@ -96,7 +96,9 @@ export default function SettingsScreen({ navigation }: RootTabScreenProps<'Setti
           theme="DARK"
           multiple={false}
           mode="SIMPLE"
-          listMode="MODAL" />
+          listMode="MODAL"
+          placeholder='Loading...'
+        />
       </ScrollView>
     </SafeAreaView>
 

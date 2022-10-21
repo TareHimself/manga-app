@@ -88,7 +88,7 @@ export async function makeDir(dir: string) {
 }
 
 export async function downloadChapter(sourceId: string, mangaId: string, chapterId: string, onProgress: (progress: number) => void) {
-    const url = `https://manga.oyintare.dev/${sourceId}/${mangaId}/chapters/${chapterId}`;
+    const url = `https://proxy.oyintare.dev/manga/${sourceId}/chapters/${mangaId}/${chapterId}`;
     const pageUrls: string[] | 'cancelled' = (await axios.get(url))?.data;
     if (pageUrls !== 'cancelled') {
         const dir = `${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${chapterId}/`;

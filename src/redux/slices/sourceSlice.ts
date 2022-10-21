@@ -34,7 +34,7 @@ async function commitToStorage(id: string) {
 const loadSource = createAsyncThunk(
 	'source/loadSource',
 	async (sourceId: string, thunkAPI) => {
-		const response = await axios.get('https://manga.oyintare.dev/');
+		const response = await axios.get('https://proxy.oyintare.dev/manga/');
 		const sourcesFromApi: MangaSource[] = response.data || [];
 		let currentSource: MangaSource = sourcesFromApi[0] || DEFAULT_SOURCE;
 
@@ -50,6 +50,8 @@ const loadSource = createAsyncThunk(
 				}
 			}
 		}
+
+		console.log(currentSource)
 
 		return { sources: sourcesFromApi, source: currentSource };
 	}
@@ -83,6 +85,11 @@ export const sourceSlice = createSlice({
 		},
 		setSource: (state, action: PayloadAction<string>) => {
 			state.source = state.sources.find(s => s.id === action.payload) || state.sources[0];
+			commitToStorage(state.source.id);
+			Toast.show(`Source Changed To ${state.source.name}`, {
+				duration: Toast.durations.SHORT,
+				position: -80
+			});
 		}
 	},
 	extraReducers: (builder) => {

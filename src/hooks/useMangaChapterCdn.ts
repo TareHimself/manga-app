@@ -46,7 +46,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
             }
 
             try {
-                const url = `https://manga.oyintare.dev/${source.id}/${mangaId}/chapters/${targetChapter.id}`;
+                const url = `https://proxy.oyintare.dev/manga/${source.id}/chapters/${mangaId}/${targetChapter.id}`;
 
                 const response: string[] | 'cancelled' = (await axios.get(url)).data;
 

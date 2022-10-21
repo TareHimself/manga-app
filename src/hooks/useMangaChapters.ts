@@ -16,7 +16,6 @@ export default function useMangaChapters(id: string): IStoredMangaChapter[] {
 
 
         dispatch(loadChapters(`${source.id}|${id}`))
-        console.log(id);
     }, [])
 
     return loadedChapters[source.id + id] || []

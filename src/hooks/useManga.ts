@@ -11,8 +11,7 @@ export default function useManga(id: string): IMangaData | null {
 
     const fetchManga = useCallback(async () => {
         try {
-            const url = `https://manga.oyintare.dev/${source.id}/${id}/`
-            console.log(url)
+            const url = `https://proxy.oyintare.dev/manga/${source.id}/manga/${id}/`
             const response: IMangaData | 'cancelled' = (await axios.get(url))?.data;
 
             if (response !== 'cancelled' && IsMounted()) {

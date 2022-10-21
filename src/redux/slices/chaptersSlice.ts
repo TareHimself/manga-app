@@ -31,7 +31,7 @@ const loadChapters = createAsyncThunk(
 		data = await getChapters(source, manga);
 
 		try {
-			const url = `https://manga.oyintare.dev/${source}/${manga}/chapters/`
+			const url = `https://proxy.oyintare.dev/manga/${source}/chapters/${manga}`
 			const response: IMangaChapter[] | 'cancelled' = (await axios.get(url))?.data;
 			if (response !== 'cancelled' && response.length) {
 				if (!data.length) {

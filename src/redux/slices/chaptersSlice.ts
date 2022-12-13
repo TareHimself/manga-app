@@ -8,6 +8,7 @@ import { encode } from 'base64-arraybuffer';
 import { downloadChapter as downloadUtil } from '../../utils';
 import { resolveAllPromises } from '../../utils';
 import { addChapters, getChapters, overwriteChapters, updateChapter } from '../../db';
+import { ApiBaseUrl } from '../../constants/Urls';
 
 // Define the initial state using that type
 const initialState: ChaptersState = {
@@ -31,33 +32,19 @@ const loadChapters = createAsyncThunk(
 		data = await getChapters(source, manga);
 
 		try {
-			const url = `https://proxy.oyintare.dev/manga/${source}/chapters/${manga}`
-			const response: IMangaChapter[] | 'cancelled' = (await axios.get(url))?.data;
+			const url = `${ApiBaseUrl}${source}/chapters/${manga}`
+			const response = (await axios.get<IMangaChapter[] | 'cancelled'>(url))?.data;
 			if (response !== 'cancelled' && response.length) {
-				if (!data.length) {
-					const chaptersAdded = [] as string[];
-					response.forEach((res) => {
-						if (!chaptersAdded.includes(res.id)) {
-							chaptersAdded.push(res.id);
-							data.push({ ...res, offline: 0, read: 0 });
-						}
-					})
-					overwriteChapters(source, manga, data);
-				} else if (response[0].id.trim() !== data[0].id.trim()) {
-					const targetIndex = response.findIndex(a => a.id === data[0].id);
-					const newItems = response.slice(0, targetIndex)
-					const newData: IStoredMangaChapter[] = [];
-					const chaptersAdded = [] as string[];
-					newItems.forEach((n) => {
-						if (!chaptersAdded.includes(n.id)) {
-							chaptersAdded.push(n.id);
-							newData.push({ ...n, offline: 0, read: 0 });
-						}
-					})
-					data = [...newData, ...data];
-					addChapters(source, manga, newData, newData.map((d, idx) => { return (data.length - 1) - idx }));
+				console.log("Chapters from storage", data.length, "Chapters from api", response.length)
+				const currentData = data.reduce((t, d) => {
+					t[d.id] = d
+					return t
+				}, {} as { [key: string]: IStoredMangaChapter });
 
-				}
+				data = response.map((r) => {
+					const existing = currentData[r.id]
+					return { id: r.id, title: r.title, offline: existing?.offline || 0, read: existing?.read || 0 }
+				})
 			}
 
 		} catch (error) {
@@ -134,7 +121,6 @@ export const chaptersSlice = createSlice({
 			state.chapters[action.payload.id] = action.payload.data;
 		}),
 			builder.addCase(downloadChapter.fulfilled, (state, action) => {
-				console.log(action.payload.chapter)
 				state.chapters[action.payload.id][action.payload.index] = action.payload.chapter;
 				state.hasPendingAction.splice(state.hasPendingAction.indexOf(action.payload.id + action.payload.chapter.id), 1);
 			}),

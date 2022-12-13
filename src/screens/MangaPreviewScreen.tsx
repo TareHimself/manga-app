@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { SafeAreaView, Text, View, ScrollView, FlatList } from '../components/Themed';
-import useMangaChapters from '../hooks/useMangaChapters';
-import { BaseStackParamList, BaseStackScreenProps, IMangaChapter, IMangaData, IStoredMangaChapter } from '../types';
-import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useState } from 'react';
+import { Dimensions, Image, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import MangaChapterPreviewTouchable from '../components/MangaChapterPreviewTouchable';
+import { FlatList, SafeAreaView, ScrollView, Text, View } from '../components/Themed';
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import useSourceChange from '../hooks/useSourceChange';
+import useMangaChapters from '../hooks/useMangaChapters';
 import useSource from '../hooks/useSource';
+import useSourceChange from '../hooks/useSourceChange';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { BaseStackParamList, BaseStackScreenProps, IMangaData, IStoredMangaChapter } from '../types';
 
 function MangaTag({ tag }: { tag: string }) {
   return (

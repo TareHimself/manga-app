@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { EventEmitter } from 'events';
+import { useCallback, useRef, useState } from "react";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import useMounted from "./useMounted";
-import { IMangaData, IMangaPreviewData } from "../types";
-import { EventEmitter } from 'events';
 
 declare global {
 	var persistenceEmitters: Map<string, EventEmitter>;

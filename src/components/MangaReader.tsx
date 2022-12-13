@@ -1,5 +1,5 @@
-import { View, Dimensions } from 'react-native'
-import React, { useState, useRef } from 'react'
+import React, { useRef, useState } from 'react';
+import { Dimensions, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { ViewProps } from './Themed';
 
@@ -21,10 +21,8 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
 			isProcessing.current = false;
 		}
 		else {
-			console.log(message.data)
+			console.log("UNAMED WEBVIEW MESSAGE", message.data)
 		}
-
-		console.log(message)
 
 	}
 
@@ -34,7 +32,6 @@ export default function MangaReader({ images, onNavigate, style }: ViewProps & {
   }, 500);
   true; // note: this is required, or you'll sometimes get silent failures
 `;
-	console.log(webViewScript)
 	return (
 		<View>
 			<WebView

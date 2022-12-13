@@ -2,20 +2,16 @@ import React, { useCallback, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView, ScrollView, Text, View } from '../components/Themed';
 import { RootTabScreenProps } from '../types';
-import Constants from "expo-constants"
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import * as DocumentPicker from 'expo-document-picker';
-import { getBookmarksEmitter } from '../emitters';
 import useSource from '../hooks/useSource';
-import usePersistence from '../hooks/usePersistence';
-import { BookmarksPersistencePayload } from '../hooks/useBookmarks';
 import Toast from 'react-native-root-toast';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { resetBookmarksInit } from '../redux/slices/bookmarksSlice';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { setSource, setSourceByIndex } from '../redux/slices/sourceSlice';
+import { setSource } from '../redux/slices/sourceSlice';
 import { setBookmarks } from '../db';
 
 export default function SettingsScreen({ navigation }: RootTabScreenProps<'Settings'>) {

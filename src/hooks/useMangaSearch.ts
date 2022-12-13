@@ -1,12 +1,10 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IMangaData, IMangaPreviewData } from "../types";
-import useMounted from "./useMounted";
-import { useUniqueId } from "./useUniqueId";
 import { compareTwoStrings } from "string-similarity";
+import { ApiBaseUrl } from "../constants/Urls";
+import { IMangaPreviewData } from "../types";
 import useSource from "./useSource";
-import MangaPreview from "../components/MangaPreview";
-import Toast from "react-native-root-toast";
+import { useUniqueId } from "./useUniqueId";
 export const DefaultMangaSearch = '';
 
 export default function useMangaDexSearch(search: string = DefaultMangaSearch, onSearchCompleted?: (results: IMangaPreviewData[]) => void): [IMangaPreviewData[], (search?: string) => Promise<void>] {
@@ -18,7 +16,7 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch, o
 
     const makeSearch = useCallback(async (search: string = DefaultMangaSearch) => {
         try {
-            const url = `https://proxy.oyintare.dev/manga/${source.id}/search?${new URLSearchParams({ q: search }).toString()}`;
+            const url = `${ApiBaseUrl}${source.id}/search?${new URLSearchParams({ q: search }).toString()}`;
 
             if (lastRequestController.current) {
                 lastRequestController.current.abort();

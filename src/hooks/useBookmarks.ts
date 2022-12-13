@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import 'react-native-get-random-values';
-import Constants from "expo-constants"
-import * as FileSystem from 'expo-file-system';
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { addBookmark as dAddBookmark, load as dLoad, removeBookmark as dRemoveBookmark } from "../redux/slices/bookmarksSlice";
 import { IMangaPreviewData } from "../types";
 import useSource from "./useSource";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { removeBookmark as dRemoveBookmark, addBookmark as dAddBookmark, load as dLoad } from "../redux/slices/bookmarksSlice";
 
 export type BookmarksPersistencePayload = { op: 'add' | 'remove' | 'refresh', data?: IMangaPreviewData | string };
 

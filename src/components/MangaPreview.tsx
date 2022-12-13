@@ -1,7 +1,7 @@
-import { Text } from './Themed';
-import { StyleSheet, Image, TouchableOpacity, ImageBackground, View as DefaultView } from 'react-native';
 import React, { PureComponent } from 'react';
+import { ImageBackground, StyleSheet, TouchableOpacity, View as DefaultView } from 'react-native';
 import { BaseStackParamList, IMangaPreviewData } from '../types';
+import { Text } from './Themed';
 
 export type MangaPreviewProps = { data: IMangaPreviewData, navigate: (route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => void; width: number; };
 

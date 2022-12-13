@@ -3,23 +3,22 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { Feather, FontAwesome, AntDesign } from '@expo/vector-icons';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { ColorSchemeName } from 'react-native';
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
-import SettingsScreen from '../screens/SettingsScreen';
-import HomeScreen from '../screens/HomeScreen';
-import MangaPreviewScreen from '../screens/MangaPreviewScreen';
-import { BaseStackParamList, RootTabParamList } from '../types';
-import ReadMangaModalScreen from '../screens/ReadMangaModalScreen';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import BookmarksScreen from '../screens/BookmarksScreen';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import { Provider } from 'react-redux';
+import useColorScheme from '../hooks/useColorScheme';
 import { store } from '../redux/store';
+import BookmarksScreen from '../screens/BookmarksScreen';
+import HomeScreen from '../screens/HomeScreen';
+import MangaPreviewScreen from '../screens/MangaPreviewScreen';
+import ReadMangaModalScreen from '../screens/ReadMangaModalScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import { BaseStackParamList, RootTabParamList } from '../types';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
 
   return (

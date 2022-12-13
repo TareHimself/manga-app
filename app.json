@@ -14,7 +14,8 @@
     },
     "owner": "boredobesity",
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/52ebb53e-25ce-4008-99db-552e603f55f4"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -31,6 +32,16 @@
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["./plugins/withAnimatedWebp"]
+    "plugins": [
+      "./plugins/withAnimatedWebp"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "52ebb53e-25ce-4008-99db-552e603f55f4"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
   }
 }

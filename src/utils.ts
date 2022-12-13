@@ -2,6 +2,7 @@ import { Dimensions } from "react-native";
 import axios from "axios";
 import { encode } from "base64-arraybuffer";
 import * as FileSystem from 'expo-file-system';
+import { ApiBaseUrl } from "./constants/Urls";
 
 export function getDiagonalScreenSize() {
     const { width, height } = Dimensions.get('screen');
@@ -88,7 +89,7 @@ export async function makeDir(dir: string) {
 }
 
 export async function downloadChapter(sourceId: string, mangaId: string, chapterId: string, onProgress: (progress: number) => void) {
-    const url = `https://proxy.oyintare.dev/manga/${sourceId}/chapters/${mangaId}/${chapterId}`;
+    const url = `${ApiBaseUrl}${sourceId}/chapters/${mangaId}/${chapterId}`;
     const pageUrls: string[] | 'cancelled' = (await axios.get(url))?.data;
     if (pageUrls !== 'cancelled') {
         const dir = `${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${chapterId}/`;

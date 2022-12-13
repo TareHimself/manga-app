@@ -1,8 +1,7 @@
-import { useEffect, } from "react";
-import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { loadChapters } from "../redux/slices/chaptersSlice";
 import { IStoredMangaChapter } from "../types";
-import useMounted from "./useMounted";
 import useSource from "./useSource";
 
 export default function useMangaChapters(id: string): IStoredMangaChapter[] {
@@ -13,7 +12,6 @@ export default function useMangaChapters(id: string): IStoredMangaChapter[] {
     const { source } = useSource();
 
     useEffect(() => {
-
 
         dispatch(loadChapters(`${source.id}|${id}`))
     }, [])

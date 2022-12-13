@@ -1,11 +1,8 @@
-import axios from "axios";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import 'react-native-get-random-values';
-import { MangaSource } from "../types";
-import * as FileSystem from 'expo-file-system';
-import usePersistence from "./usePersistence";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { incrementSource, loadSource, setSourceByIndex } from "../redux/slices/sourceSlice";
+import { MangaSource } from "../types";
 
 const DEFAULT_SOURCE: MangaSource = { id: 'mc', name: 'mangaclash' };
 export default function useSource(): { setSource: (index: number) => Promise<void>; nextSource: () => Promise<void>; source: MangaSource } {

@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { ImageURISource, StyleSheet, } from 'react-native';
 import { MangaReaderNavigation } from '../components/MangaReader';
-import { SafeAreaView, ScrollView } from '../components/Themed';
+import { SafeAreaView } from '../components/Themed';
 import useMangaDexChapterCdn from '../hooks/useMangaChapterCdn';
 import { BaseStackScreenProps } from '../types';
 import { useCallback } from 'react';
-import { useWindowDimensions } from 'react-native';
-import useReadChapters from '../hooks/useReadChapters';
 import MangaReader from '../components/MangaReader';
 import Toast from 'react-native-root-toast';
 import { setChapterAsRead } from '../redux/slices/chaptersSlice';

@@ -1,11 +1,11 @@
-import { View, Text } from './Themed'
-import React from 'react'
-import { StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
-import { IStoredMangaChapter } from '../types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import NetInfo, { NetInfoSubscription } from '@react-native-community/netinfo';
+import React from 'react';
+import { ActivityIndicator, Animated, StyleSheet, TouchableOpacity } from 'react-native';
 import { addPendingAction, deleteChapter, downloadChapter, setChapterAsRead } from '../redux/slices/chaptersSlice';
 import { store } from '../redux/store';
-import NetInfo, { NetInfoSubscription } from '@react-native-community/netinfo';
+import { IStoredMangaChapter } from '../types';
+import { Text, View } from './Themed';
 
 export type MangaChapterTouchableProps = { bIsDownloading: boolean; sourceId: string, mangaId: string; chapter: IStoredMangaChapter; chapterIndex: number, readChapter: (chapter: IStoredMangaChapter) => void; dispatch: typeof store.dispatch; bIsLast: boolean };
 

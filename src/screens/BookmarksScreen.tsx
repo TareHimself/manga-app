@@ -1,9 +1,8 @@
-import React from 'react';
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import { compareTwoStrings } from 'string-similarity';
 import MangaPreview from '../components/MangaPreview';
-import { View, SafeAreaView } from '../components/Themed';
+import { SafeAreaView, View } from '../components/Themed';
 import useBookmarks from '../hooks/useBookmarks';
 import useThrottle from '../hooks/useThrottle';
 import { BaseStackParamList, BaseStackScreenProps } from '../types';

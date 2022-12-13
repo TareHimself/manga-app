@@ -1,17 +1,16 @@
 import axios from "axios";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import * as FileSystem from 'expo-file-system';
+import { useCallback, useRef, useState } from "react";
+import { ApiBaseUrl } from "../constants/Urls";
 import useMounted from '../hooks/useMounted';
 import { useAppSelector } from "../redux/hooks";
-import useSource from "./useSource";
-import { useUniqueId } from "./useUniqueId";
-import * as FileSystem from 'expo-file-system';
 import { clamp, resolveAllPromises } from "../utils";
+import useSource from "./useSource";
 
 export default function useMangaDexChapterCdn(mangaId: string): [boolean, string[] | undefined, (chapterIndex: number) => Promise<boolean>] {
     const loadedChapters = useRef(new Map<string, string[]>());
     const [loadedChapter, setLoadedChapter] = useState<string[] | undefined>(undefined);
     const IsMounted = useMounted();
-    const uniqueId = useUniqueId();
     const [isLoadingChapter, setIsLoadingChapter] = useState(false);
 
     const { source } = useSource();
@@ -21,7 +20,6 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
     const allMangaChapters = useAppSelector(state => state.chapters.chapters[source.id + mangaId]);
 
     const fetchChapter = useCallback(async (chapterIndex: number) => {
-        console.log('Fetching ', chapterIndex)
         const targetChapter = allMangaChapters[clamp(chapterIndex, 0, allMangaChapters.length - 1)];
 
         const chapterInPool = loadedChapters.current.get(targetChapter.id);
@@ -46,7 +44,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
             }
 
             try {
-                const url = `https://proxy.oyintare.dev/manga/${source.id}/chapters/${mangaId}/${targetChapter.id}`;
+                const url = `${ApiBaseUrl}${source.id}/chapters/${mangaId}/${targetChapter.id}`;
 
                 const response: string[] | 'cancelled' = (await axios.get(url)).data;
 
@@ -64,7 +62,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
 
         }
         setIsLoadingChapter(false);
-    }, [loadedChapters.current, loadedChapter, IsMounted, uniqueId, isLoadingChapter, source, allMangaChapters])
+    }, [loadedChapters.current, loadedChapter, IsMounted, isLoadingChapter, source, allMangaChapters])
 
     return [isLoadingChapter, loadedChapter, fetchChapter]
 }

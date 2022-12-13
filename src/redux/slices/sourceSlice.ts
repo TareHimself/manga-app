@@ -5,6 +5,7 @@ import * as FileSystem from 'expo-file-system';
 import { MangaSource, SourceState } from '../../types'
 import Toast from 'react-native-root-toast';
 import axios from 'axios';
+import { ApiBaseUrl } from '../../constants/Urls';
 
 const DEFAULT_SOURCE: MangaSource = { id: 'mc', name: 'mangaclash' };
 
@@ -34,7 +35,7 @@ async function commitToStorage(id: string) {
 const loadSource = createAsyncThunk(
 	'source/loadSource',
 	async (sourceId: string, thunkAPI) => {
-		const response = await axios.get('https://proxy.oyintare.dev/manga/');
+		const response = await axios.get(ApiBaseUrl);
 		const sourcesFromApi: MangaSource[] = response.data || [];
 		let currentSource: MangaSource = sourcesFromApi[0] || DEFAULT_SOURCE;
 
@@ -50,8 +51,6 @@ const loadSource = createAsyncThunk(
 				}
 			}
 		}
-
-		console.log(currentSource)
 
 		return { sources: sourcesFromApi, source: currentSource };
 	}

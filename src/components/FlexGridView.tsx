@@ -1,6 +1,5 @@
-import { JSXElement } from "@babel/types";
 import React from "react";
-import { FlatList, ScrollView, StyleProp, View, ViewStyle } from "react-native";
+import { ScrollView, View } from "react-native";
 import { FlexGridViewProps } from "../types";
 
 export default function FlexGridView({ listStyle, rowStyle, incompleteRowStyle, columns, items, createElement }: FlexGridViewProps) {

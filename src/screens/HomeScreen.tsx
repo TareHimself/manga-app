@@ -1,10 +1,8 @@
-import React, { useEffect } from 'react';
-import { useCallback, useRef, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
-import WebView from 'react-native-webview';
+import React, { useCallback, useRef, useState } from 'react';
+import { FlatList, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import MangaPreview from '../components/MangaPreview';
-import { View, SafeAreaView } from '../components/Themed';
-import useMangaDexSearch, { DefaultMangaSearch } from '../hooks/useMangaSearch';
+import { SafeAreaView, View } from '../components/Themed';
+import useMangaDexSearch from '../hooks/useMangaSearch';
 import useSourceChange from '../hooks/useSourceChange';
 import useThrottle from '../hooks/useThrottle';
 import { useAppSelector } from '../redux/hooks';

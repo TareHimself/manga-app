@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
+import { ApiBaseUrl } from "../constants/Urls";
 import { IMangaData } from "../types";
 import useMounted from "./useMounted";
 import useSource from "./useSource";
@@ -11,7 +12,7 @@ export default function useManga(id: string): IMangaData | null {
 
     const fetchManga = useCallback(async () => {
         try {
-            const url = `https://proxy.oyintare.dev/manga/${source.id}/manga/${id}/`
+            const url = `${ApiBaseUrl}${source.id}/manga/${id}/`
             const response: IMangaData | 'cancelled' = (await axios.get(url))?.data;
 
             if (response !== 'cancelled' && IsMounted()) {

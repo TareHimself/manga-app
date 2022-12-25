@@ -6,7 +6,6 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import * as DocumentPicker from 'expo-document-picker';
-import useSource from '../hooks/useSource';
 import Toast from 'react-native-root-toast';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { resetBookmarksInit } from '../redux/slices/bookmarksSlice';
@@ -15,9 +14,8 @@ import { setSource } from '../redux/slices/sourceSlice';
 import { setBookmarks } from '../db';
 
 export default function SettingsScreen({ navigation }: RootTabScreenProps<'Settings'>) {
-  const { source, nextSource } = useSource();
 
-  const sources = useAppSelector((state) => state.source.sources);
+  const [sources, source] = useAppSelector((state) => [state.source.sources, state.source.source]);
 
   const dispatch = useAppDispatch();
 

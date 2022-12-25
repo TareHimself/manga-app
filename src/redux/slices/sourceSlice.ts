@@ -7,7 +7,8 @@ import Toast from 'react-native-root-toast';
 import axios from 'axios';
 import { ApiBaseUrl } from '../../constants/Urls';
 
-const DEFAULT_SOURCE: MangaSource = { id: 'mc', name: 'mangaclash' };
+const NO_SOURCE = "NONE"
+const DEFAULT_SOURCE: MangaSource = { id: NO_SOURCE, name: NO_SOURCE };
 
 // Define the initial state using that type
 const initialState: SourceState = {
@@ -32,9 +33,9 @@ async function commitToStorage(id: string) {
 }
 
 // First, create the thunk
-const loadSource = createAsyncThunk(
+const initialize = createAsyncThunk(
 	'source/loadSource',
-	async (sourceId: string, thunkAPI) => {
+	async (thunkAPI) => {
 		const response = await axios.get(ApiBaseUrl);
 		const sourcesFromApi: MangaSource[] = response.data || [];
 		let currentSource: MangaSource = sourcesFromApi[0] || DEFAULT_SOURCE;
@@ -92,7 +93,7 @@ export const sourceSlice = createSlice({
 		}
 	},
 	extraReducers: (builder) => {
-		builder.addCase(loadSource.fulfilled, (state, action) => {
+		builder.addCase(initialize.fulfilled, (state, action) => {
 			state.source = action.payload.source;
 			state.sources = action.payload.sources;
 			state.init = true;
@@ -101,6 +102,6 @@ export const sourceSlice = createSlice({
 })
 
 export const { incrementSource, setSourceByIndex, setSource } = sourceSlice.actions
-export { loadSource }
+export { initialize as loadSource }
 
 export default sourceSlice.reducer

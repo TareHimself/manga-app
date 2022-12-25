@@ -5,19 +5,16 @@ import { ApiBaseUrl } from "../constants/Urls";
 import useMounted from '../hooks/useMounted';
 import { useAppSelector } from "../redux/hooks";
 import { clamp, resolveAllPromises } from "../utils";
-import useSource from "./useSource";
 
-export default function useMangaDexChapterCdn(mangaId: string): [boolean, string[] | undefined, (chapterIndex: number) => Promise<boolean>] {
+export default function useMangaDexChapterCdn(mangaId: string, sourceId: string): [boolean, string[] | undefined, (chapterIndex: number) => Promise<boolean>] {
     const loadedChapters = useRef(new Map<string, string[]>());
     const [loadedChapter, setLoadedChapter] = useState<string[] | undefined>(undefined);
     const IsMounted = useMounted();
     const [isLoadingChapter, setIsLoadingChapter] = useState(false);
 
-    const { source } = useSource();
-
     const downloads = useAppSelector(state => state.chapters.hasPendingAction);
 
-    const allMangaChapters = useAppSelector(state => state.chapters.chapters[source.id + mangaId]);
+    const allMangaChapters = useAppSelector(state => state.chapters.chapters[sourceId + mangaId]);
 
     const fetchChapter = useCallback(async (chapterIndex: number) => {
         const targetChapter = allMangaChapters[clamp(chapterIndex, 0, allMangaChapters.length - 1)];
@@ -29,12 +26,12 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
             return true;
         }
         else {
-            if (!downloads.includes(source.id + mangaId + targetChapter.id) && targetChapter.offline) {
-                const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory!}chapters/${source.id}/${mangaId}/${targetChapter.id}/`);
+            if (!downloads.includes(sourceId + mangaId + targetChapter.id) && targetChapter.offline) {
+                const files = await FileSystem.readDirectoryAsync(`${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${targetChapter.id}/`);
 
                 const pages = (await resolveAllPromises(files.map((f) => {
                     return new Promise<[string, number]>(async (resolve) => {
-                        const result: [string, number] = [await FileSystem.readAsStringAsync(`${FileSystem.documentDirectory!}chapters/${source.id}/${mangaId}/${targetChapter.id}/${f}`), parseInt(f.slice(0, -5), 10)];
+                        const result: [string, number] = [await FileSystem.readAsStringAsync(`${FileSystem.documentDirectory!}chapters/${sourceId}/${mangaId}/${targetChapter.id}/${f}`), parseInt(f.slice(0, -5), 10)];
                         resolve(result);
                     })
                 }))).sort((a, b) => a[1] - b[1]).map(a => a[0])
@@ -44,7 +41,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
             }
 
             try {
-                const url = `${ApiBaseUrl}${source.id}/chapters/${mangaId}/${targetChapter.id}`;
+                const url = `${ApiBaseUrl}${sourceId}/chapters/${mangaId}/${targetChapter.id}`;
 
                 const response: string[] | 'cancelled' = (await axios.get(url)).data;
 
@@ -62,7 +59,7 @@ export default function useMangaDexChapterCdn(mangaId: string): [boolean, string
 
         }
         setIsLoadingChapter(false);
-    }, [loadedChapters.current, loadedChapter, IsMounted, isLoadingChapter, source, allMangaChapters])
+    }, [loadedChapters.current, loadedChapter, IsMounted, isLoadingChapter, allMangaChapters])
 
     return [isLoadingChapter, loadedChapter, fetchChapter]
 }

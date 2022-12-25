@@ -3,13 +3,13 @@ import 'react-native-get-random-values';
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { addBookmark as dAddBookmark, load as dLoad, removeBookmark as dRemoveBookmark } from "../redux/slices/bookmarksSlice";
 import { IMangaPreviewData } from "../types";
-import useSource from "./useSource";
+import useSourceChange from "./useSourceChange";
 
 export type BookmarksPersistencePayload = { op: 'add' | 'remove' | 'refresh', data?: IMangaPreviewData | string };
 
 export default function useBookmarks(): { IsBookmarked: (id: string) => boolean; bookmarks: IMangaPreviewData[], addBookmark: (manga: IMangaPreviewData) => Promise<void>, removeBookmark: (id: string) => Promise<void> } {
 
-	const { source } = useSource();
+	const source = useAppSelector((state) => state.source.source)
 
 	const dispatch = useAppDispatch();
 	const hasInit = useAppSelector((state) => state.bookmarks.init);
@@ -30,8 +30,10 @@ export default function useBookmarks(): { IsBookmarked: (id: string) => boolean;
 		return bookmarksItems.includes(id);
 	}, [bookmarks, bookmarksItems]);
 
-	useEffect(() => {
-		if (!hasInit) dispatch(dLoad(source.id));
-	}, [hasInit])
+	const onSourceChanged = useCallback((last, current) => {
+		dispatch(dLoad(current));
+	}, [])
+	useSourceChange(onSourceChanged)
+
 	return { IsBookmarked, bookmarks: Object.values(bookmarks), addBookmark, removeBookmark }
 }

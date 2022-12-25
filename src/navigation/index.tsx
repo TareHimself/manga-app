@@ -8,10 +8,15 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
+import { useCallback, useEffect } from 'react';
 import { ColorSchemeName } from 'react-native';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import { Provider } from 'react-redux';
+import { View } from '../components/Themed';
 import useColorScheme from '../hooks/useColorScheme';
+import useSourceChange from '../hooks/useSourceChange';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { loadSource } from '../redux/slices/sourceSlice';
 import { store } from '../redux/store';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -31,8 +36,6 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
         </RootSiblingParent>
       </NavigationContainer>
     </Provider>
-
-
   );
 }
 
@@ -44,31 +47,46 @@ const RootTab = createBottomTabNavigator<RootTabParamList>();
 
 function RootNavigator() {
 
-  return (
-    <RootTab.Navigator screenOptions={{ tabBarActiveTintColor: 'white', tabBarInactiveTintColor: 'grey' }}>
-      <RootTab.Screen name="Discover" component={SearchNavigator}
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="search1" size={size} color={color} />
-          ),
-        }} />
-      <RootTab.Screen name="Bookmarks" component={BookmarksNavigator}
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="bookmark" size={size} color={color} />
-          ),
-        }} />
-      <RootTab.Screen name="Settings" component={SettingsScreen}
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="setting" size={size} color={color} />
-          ),
-        }} />
-    </RootTab.Navigator>
-  );
+  const dispatch = useAppDispatch()
+  const isReady = useAppSelector((state) => state.source.init);
+
+  useEffect(() => {
+    if (!isReady) {
+      dispatch(loadSource())
+    }
+  }, [isReady])
+
+  if (isReady) {
+    return (
+      <RootTab.Navigator screenOptions={{ tabBarActiveTintColor: 'white', tabBarInactiveTintColor: 'grey' }}>
+        <RootTab.Screen name="Discover" component={SearchNavigator}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <AntDesign name="search1" size={size} color={color} />
+            ),
+          }} />
+        <RootTab.Screen name="Bookmarks" component={BookmarksNavigator}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="bookmark" size={size} color={color} />
+            ),
+          }} />
+        <RootTab.Screen name="Settings" component={SettingsScreen}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <AntDesign name="setting" size={size} color={color} />
+            ),
+          }} />
+      </RootTab.Navigator>
+    );
+  }
+  else {
+    return <View level={"level0"}></View>
+  }
+
 }
 
 /**

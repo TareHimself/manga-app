@@ -7,7 +7,6 @@ import { FlatList, SafeAreaView, ScrollView, Text, View } from '../components/Th
 import useBookmarks from '../hooks/useBookmarks';
 import useManga from '../hooks/useManga';
 import useMangaChapters from '../hooks/useMangaChapters';
-import useSource from '../hooks/useSource';
 import useSourceChange from '../hooks/useSourceChange';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { BaseStackParamList, BaseStackScreenProps, IMangaData, IStoredMangaChapter } from '../types';
@@ -23,7 +22,7 @@ function MangaTag({ tag }: { tag: string }) {
 
 function ChaptersList({ manga, chapters, navigation }: { manga: IMangaData, chapters: IStoredMangaChapter[]; navigation: NativeStackNavigationProp<BaseStackParamList, "MangaPreview", undefined> }) {
 
-  const { source } = useSource();
+  const source = useAppSelector((s) => s.source.source);
 
   const dispatch = useAppDispatch();
 
@@ -69,7 +68,9 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const { manga: mangaPreview } = route.params;
 
-  const mangaFromApi = useManga(mangaPreview.id);
+  const source = useAppSelector((s) => s.source.source)
+
+  const mangaFromApi = useManga(mangaPreview.id, source.id);
 
   const manga = mangaFromApi || { ...mangaPreview, description: 'loading', status: 'loading', tags: [] };
 
@@ -79,16 +80,17 @@ export default function MangaPreviewScreen({ navigation, route }: BaseStackScree
 
   const { width } = useWindowDimensions();
 
-  const chapters = useMangaChapters(manga.id || '');
+  const chapters = useMangaChapters(manga.id || '', source.id);
+
+  console.log(chapters.length, "CHAPTERS FROM SLICE")
 
   const { IsBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
   const bIsBookmarked = IsBookmarked(manga.id);
 
-  const onSourceChanged = useCallback(() => {
-    navigation.pop();
-  }, [navigation]);
-
+  const onSourceChanged = useCallback((last, current) => {
+    navigation.pop()
+  }, [])
   useSourceChange(onSourceChanged)
 
   return (

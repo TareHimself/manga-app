@@ -57,6 +57,7 @@ export async function setBookmarks(source: string, bookmarks: IMangaPreviewData[
 }
 
 export async function getChapters(source: string, manga: string) {
+	console.log("FETCHING DB CHAPTERTS", source, manga)
 	return new Promise<IStoredMangaChapter[]>((resolve) => {
 		db.readTransaction((tx) => {
 			tx.executeSql('SELECT id,title,read,offline FROM chapters WHERE src=? AND manga=? ORDER BY idx DESC', [source, manga], (txObj, { rows: { _array } }) => { resolve(_array || []) }, (tsx, err) => { console.log(err.message); return true; })
@@ -65,6 +66,7 @@ export async function getChapters(source: string, manga: string) {
 }
 
 export async function overwriteChapters(source: string, manga: string, chapters: IStoredMangaChapter[]) {
+	console.log("OVERIDING DB CHAPTERTS WITH", chapters.length, source, manga)
 	return new Promise<void>((resolve) => {
 		db.transaction((tx) => {
 			tx.executeSql('DELETE FROM chapters WHERE src=? AND manga=?', [source, manga]);

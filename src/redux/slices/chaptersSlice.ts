@@ -25,16 +25,15 @@ const loadChapters = createAsyncThunk(
 
 		let data = [] as IStoredMangaChapter[];
 		const [source, manga] = idAndManga.split('|');
-		const { chapters } = (await getState()) as {
-			chapters: ChaptersState;
-		};
 
 		data = await getChapters(source, manga);
-
+		console.log(source, manga)
+		console.log("have", data.length, "chapters")
 		try {
 			const url = `${ApiBaseUrl}${source}/chapters/${manga}`
 			const response = (await axios.get<IMangaChapter[] | 'cancelled'>(url))?.data;
-			if (response !== 'cancelled' && response.length) {
+			console.log("recieved", response.length, "chapters")
+			if (response !== 'cancelled' && response.length && response.length != data.length) {
 				console.log("Chapters from storage", data.length, "Chapters from api", response.length)
 				const currentData = data.reduce((t, d) => {
 					t[d.id] = d
@@ -45,13 +44,17 @@ const loadChapters = createAsyncThunk(
 					const existing = currentData[r.id]
 					return { id: r.id, title: r.title, offline: existing?.offline || 0, read: existing?.read || 0 }
 				})
+
+				await overwriteChapters(source, manga, data)
+
+				console.log("stored", data.length, "chapters")
 			}
 
 		} catch (error) {
 			console.log(error)
 		}
 		return {
-			id: source + manga, data
+			id: idAndManga, data
 		}
 	}
 )
@@ -109,11 +112,12 @@ export const chaptersSlice = createSlice({
 		addPendingAction: (state, action: PayloadAction<string>) => {
 			state.hasPendingAction.push(action.payload);
 		},
-		setChapterAsRead: (state, action: PayloadAction<[string, string, number, IStoredMangaChapter]>) => {
-			const chapter = { ...action.payload[3] }
+		setChapterAsRead: (state, action: PayloadAction<[string, number, IStoredMangaChapter]>) => {
+			const [index, chapterIndex, chapter] = action.payload
+			const [source, mangaId] = index.split("|")
 			chapter.read = 1;
-			state.chapters[action.payload[0] + action.payload[1]][action.payload[2]] = chapter;
-			updateChapter(action.payload[0], action.payload[1], chapter)
+			state.chapters[index][chapterIndex] = chapter;
+			updateChapter(source, mangaId, chapter)
 		}
 	},
 	extraReducers: (builder) => {

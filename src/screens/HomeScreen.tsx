@@ -22,6 +22,8 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
     setItemWidth(width / 2);
   }
 
+  const source = useAppSelector((state) => state.source.source)
+
   const [isSearching, setIsSearching] = useState(false);
 
   const rows = Math.max(Math.floor(width / itemWidth), 1);
@@ -34,20 +36,20 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
     setIsSearching(false);
   }, [isSearching, setIsSearching])
 
-  const [results, makeSearch] = useMangaDexSearch(latestSearch.current, onSearchCompleted);
+  const [results, makeSearch] = useMangaDexSearch(onSearchCompleted);
 
   const onSearchCommited = useCallback((search: string) => {
     latestSearch.current = search;
-    makeSearch(latestSearch.current)
+    makeSearch(latestSearch.current, source.id)
     setIsSearching(true)
-  }, [latestSearch, makeSearch]);
+  }, [latestSearch, makeSearch, source.id]);
 
   const updateSearch = useThrottle<string>(500, onSearchCommited, '');
 
   const onRefresh = useCallback(() => {
     setIsSearching(true);
-    makeSearch(latestSearch.current);
-  }, [makeSearch, setIsSearching]);
+    makeSearch(latestSearch.current, source.id);
+  }, [makeSearch, setIsSearching, source.id]);
 
   const navigate = useCallback((route: keyof BaseStackParamList, params: BaseStackParamList[keyof BaseStackParamList]) => {
     navigation.navigate(route, params)
@@ -56,7 +58,7 @@ export default function HomeScreen({ navigation }: BaseStackScreenProps<'Root'>)
   const textInputRef = useRef<TextInput | null>()
 
 
-  const onSourceChanged = useCallback(() => {
+  const onSourceChanged = useCallback((last, current) => {
     if (textInputRef.current) {
       textInputRef.current.clear();
       onSearchCommited('');

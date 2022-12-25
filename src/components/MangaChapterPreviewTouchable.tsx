@@ -63,7 +63,7 @@ export default class MangaChapterTouchable extends React.Component<MangaChapterT
 
     markAsRead() {
         if (!this.props.chapter.read) {
-            this.props.dispatch(setChapterAsRead([this.props.sourceId, this.props.mangaId, this.props.chapterIndex, this.props.chapter]));
+            this.props.dispatch(setChapterAsRead([`${this.props.sourceId}|${this.props.mangaId}`, this.props.chapterIndex, this.props.chapter]));
         }
     }
 

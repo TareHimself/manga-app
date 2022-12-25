@@ -3,20 +3,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { compareTwoStrings } from "string-similarity";
 import { ApiBaseUrl } from "../constants/Urls";
 import { IMangaPreviewData } from "../types";
-import useSource from "./useSource";
 import { useUniqueId } from "./useUniqueId";
 export const DefaultMangaSearch = '';
 
-export default function useMangaDexSearch(search: string = DefaultMangaSearch, onSearchCompleted?: (results: IMangaPreviewData[]) => void): [IMangaPreviewData[], (search?: string) => Promise<void>] {
+export default function useMangaDexSearch(onSearchCompleted?: (results: IMangaPreviewData[]) => void): [IMangaPreviewData[], (search: string, sourceId: string) => Promise<void>] {
     const [results, setResults] = useState<IMangaPreviewData[]>([]);
     const uniqueId = useUniqueId();
     const lastRequestController = useRef<AbortController | null>();
 
-    const { source } = useSource();
 
-    const makeSearch = useCallback(async (search: string = DefaultMangaSearch) => {
+    const makeSearch = useCallback(async (search: string, sourceId: string) => {
         try {
-            const url = `${ApiBaseUrl}${source.id}/search?${new URLSearchParams({ q: search }).toString()}`;
+            const url = `${ApiBaseUrl}${sourceId}/search?${new URLSearchParams({ q: search }).toString()}`;
 
             if (lastRequestController.current) {
                 lastRequestController.current.abort();
@@ -54,7 +52,7 @@ export default function useMangaDexSearch(search: string = DefaultMangaSearch, o
         } catch (error) {
             console.log(error);
         }
-    }, [results, uniqueId, lastRequestController.current, source.id])
+    }, [results, uniqueId, lastRequestController.current])
 
     useEffect(() => {
 
